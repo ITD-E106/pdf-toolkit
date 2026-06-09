@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit PDF Text Tool v20</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252b3d;--border:rgba(255,255,255,.1);--accent:#4f7cff;--orange:#f97316;--green:#22c55e;--red:#ef4444;--text:#e8eaf0;--muted:#9ca3c0;--muted2:#626b85;--shadow:0 14px 48px rgba(0,0,0,.45)}
+*{box-sizing:border-box}body{margin:0;height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}.app{height:100vh;display:flex;flex-direction:column}.toolbar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;padding:0 12px;overflow-x:auto}.logo{font-weight:700;white-space:nowrap}.logo span{color:var(--accent)}button{border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap}button:hover{border-color:rgba(79,124,255,.55)}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button.orange{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.36);color:#fdba74}button.green{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.35);color:#86efac}button.danger{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.35);color:#fca5a5}button:disabled{opacity:.45;cursor:not-allowed}button.active{background:rgba(79,124,255,.22);border-color:rgba(79,124,255,.65);color:#cfe0ff}.sep{width:1px;height:30px;background:var(--border);flex:0 0 auto}.spacer{flex:1}.status{font:12px 'DM Mono',monospace;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:5px 10px}.banner{display:none;background:rgba(79,124,255,.12);border-bottom:1px solid rgba(79,124,255,.28);padding:8px 14px;color:#bcd0ff;font-size:13px}.banner.show{display:block}.banner.edit{display:block;background:rgba(249,115,22,.13);border-bottom-color:rgba(249,115,22,.28);color:#fdba74}.main{display:flex;flex:1;min-height:0}.side{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}.side h3,.props h3{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted2);margin:14px 14px 8px}.thumbs{overflow:auto;padding:0 10px 14px;display:flex;flex-direction:column;gap:8px}.thumb{position:relative;border:2px solid transparent;border-radius:8px;overflow:hidden;cursor:pointer;background:#fff}.thumb.active{border-color:var(--accent)}.thumb canvas{display:block;width:100%}.thumb span{position:absolute;right:6px;bottom:5px;background:rgba(0,0,0,.65);color:#fff;border-radius:4px;padding:1px 6px;font-size:11px}.workspace{flex:1;overflow:auto;padding:26px;display:flex;flex-direction:column;align-items:center;gap:18px}.drop{min-height:380px;max-width:560px;width:100%;border:2px dashed var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;color:var(--muted);cursor:pointer}.drop:hover{border-color:var(--accent);background:rgba(79,124,255,.04)}.drop b{font-size:23px;color:var(--text)}.page-wrap{position:relative;background:white;box-shadow:var(--shadow);line-height:0}.pdf-canvas{display:block}.text-layer{position:absolute;inset:0;line-height:normal;pointer-events:none}.text-layer.active{pointer-events:auto}.text-block{position:absolute;border:1.5px solid transparent;border-radius:3px;background:transparent;color:transparent;overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:1.15;padding:1px 2px;cursor:text}.text-layer.active .text-block{border-color:rgba(249,115,22,.28);background:rgba(249,115,22,.06);color:rgba(0,0,0,.08)}.text-layer.active .text-block:hover{border-color:rgba(249,115,22,.75);background:rgba(249,115,22,.12)}.text-block.editing{border-color:var(--orange)!important;background:#fff!important;color:#111!important;outline:none;box-shadow:0 0 0 3px rgba(249,115,22,.22);z-index:20;overflow:visible!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-all!important;line-height:1.18!important}.text-block.editing::selection{background:rgba(79,124,255,.28)}.text-block.changed{border-color:rgba(34,197,94,.8)!important;background:#fff!important;color:#111!important;z-index:12}.text-block.changed.fmt-highlight{background:rgba(251,191,36,.55)!important;color:#111!important}.text-block.typewriter-block{border-color:rgba(79,124,255,.65)!important;background:#fff!important;color:#111!important}.text-block.fmt-bold{font-weight:700!important}.text-block.fmt-italic{font-style:italic!important}.text-block.fmt-highlight{background:rgba(251,191,36,.26)!important;border-color:rgba(251,191,36,.85)!important;color:rgba(0,0,0,.18)!important}.text-block.editing.fmt-highlight{background:rgba(251,191,36,.32)!important}.text-block.selected{outline:2px solid #4f7cff!important;outline-offset:2px}.text-block.dragging{cursor:grabbing!important}.resize-handle{position:absolute;width:10px;height:10px;right:-6px;bottom:-6px;border-radius:2px;background:#4f7cff;border:1px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:nwse-resize;display:none;z-index:30}.text-layer.active .text-block.selected .resize-handle,.text-layer.active .text-block.changed .resize-handle{display:block}.old-text-cover{position:absolute;background:#fff;pointer-events:none;z-index:11}.bg-fill-preview{position:absolute;pointer-events:none;z-index:11;border-radius:1px}.props{width:270px;background:var(--surface);border-left:1px solid var(--border);padding:0 14px 14px;overflow:auto}.help{font-size:12px;color:var(--muted);line-height:1.6}.prop{margin:12px 0}.prop label{display:block;font-size:11px;color:var(--muted2);margin-bottom:5px}.prop textarea,.prop input{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;font-family:inherit}.prop textarea{min-height:130px;resize:vertical}.toast{position:fixed;right:18px;bottom:18px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 15px;color:var(--text);opacity:0;transition:.2s;z-index:50;max-width:560px}.toast.show{opacity:1}.file-input{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="toolbar">
+<div class="logo">Editable <span>PDF</span></div>
+<div class="sep"></div>
+<button onclick="openFile()">Open PDF</button>
+<input accept=".pdf,application/pdf" class="file-input" id="fileInput" onchange="handleFileInput(event)" type="file"/>
+<button class="orange" disabled="" id="editBtn" onclick="toggleEditMode()">Edit Text Mode</button>
+    <button disabled="" id="typeBtn" onclick="toggleTypewriterMode()">Typewriter</button>
+<button disabled="" id="boldBtn" onclick="toggleBlockFormat('bold')"><b>B</b></button>
+<button disabled="" id="italicBtn" onclick="toggleBlockFormat('italic')"><i>I</i></button>
+<button disabled="" id="highlightBtn" onclick="toggleBlockFormat('highlight')">Highlight</button>
+<button disabled="" id="revertBtn" onclick="revertAllEdits()">Revert Edits</button>
+<div class="sep"></div>
+<button class="green" disabled="" id="submitBtn" onclick="submitChanges()">Submit Changes / Preview</button>
+<button class="primary" id="saveBtn" onclick="savePdf()" style="display:none">Save PDF</button>
+<button id="continueBtn" onclick="continueEditing()" style="display:none">Continue Editing</button>
+<div class="spacer"></div>
+<span class="status" id="editCount">0 edits</span>
+<span class="status" id="pageInfo">- / -</span>
+</div>
+<div class="banner" id="banner">Open a PDF, enter Edit Text Mode, click text blocks to edit or format, Submit Changes to preview, then Save PDF.</div>
+<div class="main">
+<aside class="side"><h3>Pages</h3><div class="thumbs" id="thumbs"></div></aside>
+<section class="workspace" id="workspace"><div class="drop" onclick="openFile()"><b>Open a PDF</b><div>This tool converts detected PDF text into editable blocks. Submit creates a separate preview. Save does the final download.</div><button class="primary">Choose PDF</button></div></section>
+<aside class="props"><h3>Properties</h3><div id="props"><div class="help">No PDF loaded yet.</div></div></aside>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let sourceBytes=null,previewBytes=null,pdfDoc=null,pages=[],scale=1.45,currentPage=0,editMode=false,typewriterMode=false,activeBlock=null,selectedBlock=null,lastEditSnapshot=[],nextNewBlockId=1;
+function bytesCopy(bytes){return new Uint8Array(bytes).slice().buffer}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+function handleFileInput(event){
+  const input=event && event.target ? event.target : document.getElementById('fileInput');
+  const file=input && input.files && input.files[0];
+  if(file) loadFile(file);
+}
+function openFile(){
+  let input=document.getElementById('fileInput');
+  if(!input){
+    input=document.createElement('input');
+    input.type='file'; input.accept='.pdf,application/pdf'; input.style.display='none'; input.id='fileInput';
+    input.addEventListener('change',handleFileInput);
+    document.body.appendChild(input);
+  }
+  input.value='';
+  input.click();
+}
+function isProbablyPdf(file){
+  return !!file && (file.type==='application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+}
+async function loadFile(file){
+  if(!file) return;
+  if(!isProbablyPdf(file)){ toast('Please choose a PDF file.'); return; }
+  try{
+    resetState();
+    toast('Loading PDF...');
+    const originalBuffer=await file.arrayBuffer();
+    sourceBytes=bytesCopy(originalBuffer);
+    previewBytes=null;
+    await renderPdf(sourceBytes);
+    document.getElementById('editBtn').disabled=false;const typeBtn=document.getElementById('typeBtn');if(typeBtn)typeBtn.disabled=false;setFormatButtonsEnabled(false);
+    document.getElementById('banner').className='banner show';
+    document.getElementById('banner').textContent='PDF converted to editable text blocks. Click Edit Text Mode to modify detected text, or Typewriter to add text in blank boxes.';
+    document.getElementById('props').innerHTML='<div class="help">Click <b>Edit Text Mode</b>, then click any detected text block on the page to edit it. Submit Changes creates a preview before Save.</div>';
+    toast('Loaded '+file.name);
+  }catch(e){
+    console.error('Open PDF failed:',e);
+    alert('Open PDF error: '+(e && e.stack ? e.stack : e.message));
+    toast('Open error: '+e.message);
+  }
+}
+function resetState(){pdfDoc=null;pages=[];editMode=false;activeBlock=null;selectedBlock=null;previewBytes=null;document.getElementById('workspace').innerHTML='<div class="drop" onclick="openFile()"><b>Open a PDF</b><div>This tool converts detected PDF text into editable overlay blocks. Edit text, preview changes, then save.</div><button class="primary" type="button">Choose PDF</button></div>';document.getElementById('thumbs').innerHTML='';document.getElementById('saveBtn').style.display='none';document.getElementById('continueBtn').style.display='none';document.getElementById('submitBtn').disabled=true;document.getElementById('editBtn').disabled=true;const tb=document.getElementById('typeBtn');if(tb){tb.disabled=true;tb.classList.remove('active')}typewriterMode=false;document.getElementById('revertBtn').disabled=true;setFormatButtonsEnabled(false);document.getElementById('editCount').textContent='0 edits';document.getElementById('pageInfo').textContent='- / -'}
+async function renderPdf(bytes,opts={}){if(activeBlock)finishBlockEdit();pdfDoc=await pdfjsLib.getDocument({data:bytesCopy(bytes)}).promise;pages=[];document.getElementById('workspace').innerHTML='';document.getElementById('thumbs').innerHTML='';for(let n=1;n<=pdfDoc.numPages;n++)await renderPage(n,!!opts.previewOnly);goPage(0)}
+async function renderPage(n,previewOnly=false){const page=await pdfDoc.getPage(n);const vp=page.getViewport({scale});const wrap=document.createElement('div');wrap.className='page-wrap';wrap.dataset.page=n-1;const canvas=document.createElement('canvas');canvas.className='pdf-canvas';canvas.width=Math.ceil(vp.width);canvas.height=Math.ceil(vp.height);await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;const layer=document.createElement('div');layer.className='text-layer';wrap.append(canvas,layer);document.getElementById('workspace').appendChild(wrap);const pageObj={page,wrap,canvas,layer,vp,blocks:[]};pages.push(pageObj);if(!previewOnly)await extractEditableText(pageObj,n-1);wrap.addEventListener('click',e=>{
+    if(editMode&&typewriterMode&&(e.target===wrap||e.target===canvas||e.target===layer)){
+      const rect=wrap.getBoundingClientRect();
+      createTypewriterBlock(n-1,e.clientX-rect.left,e.clientY-rect.top);
+      return;
+    }
+    if(editMode&&!e.target.classList.contains('text-block')&&activeBlock)finishBlockEdit();
+  });await renderThumb(page,n)}
+async function extractEditableText(pageObj,pageIndex){
+  const content=await pageObj.page.getTextContent();
+  const raw=[];
+
+  for(const item of content.items){
+    if(!item.str||!item.str.trim()) continue;
+    const tx=pdfjsLib.Util.transform(pageObj.vp.transform,item.transform);
+    const x=tx[4], base=tx[5];
+    const fontSize=Math.max(Math.abs(item.transform[3])*pageObj.vp.scale,6);
+    const width=Math.max(item.width*pageObj.vp.scale, Math.max(item.str.length*fontSize*.28,4));
+    const top=base-fontSize;
+    raw.push({
+      text:item.str.trim(), x, base, top, w:width, h:fontSize*1.25,
+      x2:x+width, fontSize, fontName:item.fontName||'',
+      isBold:/bold|black|heavy|semibold/i.test(item.fontName||''),
+      isItalic:/italic|oblique/i.test(item.fontName||'')
+    });
+  }
+
+  // Sort into visual reading order, then group into same-baseline lines.
+  raw.sort((a,b)=>Math.abs(a.base-b.base)<3 ? a.x-b.x : a.base-b.base);
+  const lineGroups=[];
+  for(const it of raw){
+    let line=lineGroups.find(l=>Math.abs(l.base-it.base)<=Math.max(3,it.fontSize*.35));
+    if(!line){ line={base:it.base, items:[]}; lineGroups.push(line); }
+    line.items.push(it);
+    line.base=(line.base*(line.items.length-1)+it.base)/line.items.length;
+  }
+
+  const blocks=[];
+  for(const line of lineGroups){
+    line.items.sort((a,b)=>a.x-b.x);
+    let seg=null;
+    const flush=()=>{ if(seg){ blocks.push(seg); seg=null; } };
+
+    for(const it of line.items){
+      if(!seg){ seg={...it}; continue; }
+
+      const gap=it.x-seg.x2;
+      const avgFs=(seg.fontSize+it.fontSize)/2;
+
+      // Conservative merge threshold. This prevents table columns like "1" and
+      // "Purchase" from becoming one editable block, while still keeping words
+      // that are genuinely part of the same text run together.
+      const mergeGap=Math.max(3, avgFs*.55);
+      const currentIsOnlyNumber=/^\d+[.)]?$/.test(seg.text.trim());
+      const nextStartsWord=/^[A-Za-z]/.test(it.text.trim());
+      const numericColumnBreak=currentIsOnlyNumber && nextStartsWord && gap>avgFs*.25;
+      const looksLikeColumnGap=gap>Math.max(8, avgFs*.9);
+
+      if(gap>mergeGap || numericColumnBreak || looksLikeColumnGap){
+        flush();
+        seg={...it};
+      }else{
+        const needsSpace=gap>avgFs*.18 && !seg.text.endsWith(' ') && !it.text.startsWith(' ');
+        seg.text+=(needsSpace?' ':'')+it.text;
+        seg.x2=Math.max(seg.x2,it.x2);
+        seg.w=seg.x2-seg.x;
+        seg.top=Math.min(seg.top,it.top);
+        seg.h=Math.max(seg.h,it.h);
+        seg.fontSize=Math.max(seg.fontSize,it.fontSize);
+        seg.isBold=seg.isBold||it.isBold;
+        seg.isItalic=seg.isItalic||it.isItalic;
+      }
+    }
+    flush();
+  }
+
+  blocks.sort((a,b)=>Math.abs(a.base-b.base)<3 ? a.x-b.x : a.base-b.base);
+
+  // Editable field width: keep close to the original detected text box.
+  // Earlier versions extended the box to the next column/page edge, which caused
+  // long text to run across table cells instead of wrapping. Use the original
+  // text width with a small comfort pad, and a sensible minimum for tiny values.
+  blocks.forEach(line=>{
+    const minW=Math.max(70,line.fontSize*5.5);
+    const naturalW=line.w+Math.max(12,line.fontSize*0.9);
+    line.wrapW=Math.min(Math.max(naturalW,minW), pageObj.vp.width-line.x-16);
+  });
+
+  blocks.forEach((line,idx)=>{
+    const pad=2;
+    const el=document.createElement('div');
+    el.className='text-block';
+    el.style.left=(line.x-pad)+'px';
+    el.style.top=(line.top-pad)+'px';
+    el.style.width=Math.max(line.wrapW||line.w+pad*2,18)+'px';
+    el.style.height=Math.max(line.h+pad*2,12)+'px';
+    el.style.fontSize=line.fontSize.toFixed(1)+'px';
+    if(line.isBold) el.style.fontWeight='700';
+    if(line.isItalic) el.style.fontStyle='italic';
+    el.textContent=line.text;
+    el.title='Click to edit this text';
+    const handle=document.createElement('span');handle.className='resize-handle';el.appendChild(handle);
+    const detectedColors=estimateBlockColors(pageObj,line); if(detectedColors.bgEnabled){line.bgX=detectedColors.bgX;line.bgTop=detectedColors.bgTop;line.bgW=detectedColors.bgW;line.bgH=detectedColors.bgH; if(detectedColors.bgW&&detectedColors.bgW>line.wrapW) line.wrapW=detectedColors.bgW-Math.max(4,line.x-detectedColors.bgX);} const originalFmt={bold:!!line.isBold,italic:!!line.isItalic,highlight:false,bgEnabled:detectedColors.bgEnabled,bgColor:detectedColors.bgColor,textColor:detectedColors.textColor};const block={pageIndex,idx,el,handle,line,original:line.text,current:line.text,originalFmt:cloneFmt(originalFmt),fmt:cloneFmt(originalFmt),changed:false,wrapWidth:line.wrapW||line.w,moved:false,resized:false};applyBlockStyle(block);
+    el.addEventListener('click',ev=>{if(!editMode)return;ev.stopPropagation();selectBlock(block)});
+    el.addEventListener('dblclick',ev=>{if(!editMode)return;ev.stopPropagation();startBlockEdit(block)});
+    setupMoveResize(block);
+    pageObj.layer.appendChild(el);
+    pageObj.blocks.push(block);
+  });
+}
+
+function createTypewriterBlock(pageIndex,x,top,opts={}){
+  const pageObj=pages[pageIndex];
+  if(!pageObj) return null;
+  const fs=Number.isFinite(opts.fontSize)?opts.fontSize:16;
+  const width=Number.isFinite(opts.width)?opts.width:180;
+  const height=Number.isFinite(opts.height)?opts.height:Math.max(24,fs*1.6);
+  const id=opts.idx || ('new'+(nextNewBlockId++));
+  const line={text:opts.text||'Type here',x:x,top:top,base:top+fs,w:width,h:height,x2:x+width,fontSize:fs,wrapW:width,isBold:false,isItalic:false,fontName:'typewriter'};
+  const el=document.createElement('div');
+  el.className='text-block typewriter-block';
+  el.style.left=x+'px';
+  el.style.top=top+'px';
+  el.style.width=width+'px';
+  el.style.minHeight=height+'px';
+  el.style.height='auto';
+  el.style.fontSize=fs.toFixed(1)+'px';
+  el.textContent=opts.current || opts.text || 'Type here';
+  const handle=document.createElement('span');handle.className='resize-handle';el.appendChild(handle);
+  const originalFmt={bold:false,italic:false,highlight:false,bgEnabled:false,bgColor:'#ffffff',textColor:'#111111'};
+  const block={pageIndex,idx:id,isNew:true,el,handle,line,original:'',current:el.textContent.replace(/\s*$/,''),originalFmt:cloneFmt(originalFmt),fmt:cloneFmt(opts.fmt||originalFmt),changed:true,wrapWidth:width,moved:!!opts.moved,resized:!!opts.resized};
+  applyBlockStyle(block);
+  setupMoveResize(block);
+  el.addEventListener('click',ev=>{if(!editMode)return;ev.stopPropagation();selectBlock(block)});
+  el.addEventListener('dblclick',ev=>{if(!editMode)return;ev.stopPropagation();startBlockEdit(block)});
+  pageObj.layer.appendChild(el);
+  pageObj.blocks.push(block);
+  selectBlock(block);
+  startBlockEdit(block);
+  updateEditButtons();
+  return block;
+}
+
+
+function formatPropsHtml(block,editing){
+  const f=cloneFmt(block&&block.fmt);
+  return '<div class="prop"><label>'+(editing?'Editing':'Selected')+' page '+((block&&block.pageIndex!=null?block.pageIndex:0)+1)+'</label>'+
+    (editing?'<textarea id="textProp" spellcheck="false"></textarea>':'<div class="help">Drag the box to move it. Drag the blue corner to resize/wrap. Double-click to edit text.</div>')+
+    '</div>'+
+    '<div class="prop"><label>Text Color</label><input type="color" value="'+(f.textColor||'#111111')+'" oninput="setSelectedTextColor(this.value)"></div>'+
+    '<div class="prop"><label>Background Fill</label><div style="display:flex;gap:6px;align-items:center"><input type="checkbox" '+(f.bgEnabled?'checked':'')+' onchange="setSelectedBgEnabled(this.checked)" style="width:auto"><input type="color" value="'+(f.bgColor||'#ffffff')+'" oninput="setSelectedBgColor(this.value)"></div></div>'+
+    '<div class="help">For coloured boxes, enable Background Fill and choose the box colour. Example: black fill + white text.</div>'+
+    (editing?'<button onclick="finishBlockEdit()">Apply Text</button> ':'<button onclick="startBlockEdit(selectedBlock)">Edit Text</button> ')+
+    '<button class="danger" onclick="'+(editing?'revertActiveBlock':'revertSelectedBlock')+'()">Revert Block</button>';
+}
+function getTargetBlock(){return activeBlock||selectedBlock;}
+function setSelectedTextColor(v){const b=getTargetBlock();if(!b)return;b.fmt=cloneFmt(b.fmt);b.fmt.textColor=normalizeHexColor(v,'#111111');applyBlockStyle(b);markBlockChanged(b);if(activeBlock)showBlockTextInProps(b);else if(selectedBlock)document.getElementById('props').innerHTML=formatPropsHtml(b,false);}
+function setSelectedBgEnabled(v){const b=getTargetBlock();if(!b)return;b.fmt=cloneFmt(b.fmt);b.fmt.bgEnabled=!!v;applyBlockStyle(b);markBlockChanged(b);if(activeBlock)showBlockTextInProps(b);else if(selectedBlock)document.getElementById('props').innerHTML=formatPropsHtml(b,false);}
+function setSelectedBgColor(v){const b=getTargetBlock();if(!b)return;b.fmt=cloneFmt(b.fmt);b.fmt.bgColor=normalizeHexColor(v,'#ffffff');b.fmt.bgEnabled=true;applyBlockStyle(b);markBlockChanged(b);if(activeBlock)showBlockTextInProps(b);else if(selectedBlock)document.getElementById('props').innerHTML=formatPropsHtml(b,false);}
+function showBlockTextInProps(block){const ta=document.getElementById('textProp');if(ta&&document.activeElement!==ta)ta.value=block.el.textContent;}
+
+function selectBlock(block){
+  if(activeBlock&&activeBlock!==block)finishBlockEdit();
+  if(selectedBlock&&selectedBlock.el)selectedBlock.el.classList.remove('selected');
+  selectedBlock=block;
+  block.el.classList.add('selected');
+  updateFormatButtons();
+  document.getElementById('props').innerHTML=formatPropsHtml(block,false);
+}
+function setupMoveResize(block){
+  const el=block.el, handle=block.handle;
+  let mode=null,startX=0,startY=0,startLeft=0,startTop=0,startW=0,startH=0,moved=false;
+  el.addEventListener('mousedown',ev=>{
+    if(!editMode||activeBlock||el.isContentEditable)return;
+    if(ev.target===handle)return;
+    selectBlock(block);
+    mode='move';moved=false;startX=ev.clientX;startY=ev.clientY;startLeft=parseFloat(el.style.left)||0;startTop=parseFloat(el.style.top)||0;
+    el.classList.add('dragging');ev.preventDefault();ev.stopPropagation();
+  });
+  handle.addEventListener('mousedown',ev=>{
+    if(!editMode)return;
+    selectBlock(block);
+    mode='resize';moved=false;startX=ev.clientX;startY=ev.clientY;startW=parseFloat(el.style.width)||80;startH=parseFloat(el.style.height)||20;
+    ev.preventDefault();ev.stopPropagation();
+  });
+  document.addEventListener('mousemove',ev=>{
+    if(!mode)return;
+    const dx=ev.clientX-startX, dy=ev.clientY-startY;
+    if(Math.abs(dx)+Math.abs(dy)>2)moved=true;
+    if(mode==='move'){
+      el.style.left=(startLeft+dx)+'px';
+      el.style.top=(startTop+dy)+'px';
+      block.moved=true;
+    }else if(mode==='resize'){
+      const w=Math.max(28,startW+dx), h=Math.max(14,startH+dy);
+      el.style.width=w+'px';el.style.minHeight=h+'px';el.style.height='auto';
+      block.wrapWidth=Math.max(20,w-4);block.resized=true;
+      applyImmediatePreviewStyle(block);
+    }
+    markBlockChanged(block);
+  });
+  document.addEventListener('mouseup',()=>{if(mode){el.classList.remove('dragging');mode=null;}});
+}
+function revertSelectedBlock(){if(selectedBlock){const prev=activeBlock;activeBlock=selectedBlock;revertActiveBlock();activeBlock=prev;}}
+function removeOldCover(block){if(block&&block.oldCover){block.oldCover.remove();block.oldCover=null;}removeBgFill(block);}
+function removeBgFill(block){if(block&&block.bgFill){block.bgFill.remove();block.bgFill=null;}}
+function getBlockBgScreenRect(block){
+  const l=block&&block.line;
+  if(!block||!block.el||!l)return null;
+  const fs=parseFloat(block.el.style.fontSize||l.fontSize||12);
+  const left=parseFloat(block.el.style.left);
+  const top=parseFloat(block.el.style.top);
+  const width=parseFloat(block.el.style.width);
+  const movedOrResized=!!(block.moved||block.resized||block.isNew);
+  if(!movedOrResized && Number.isFinite(l.bgX) && Number.isFinite(l.bgW) && l.bgW>l.w){
+    return {x:l.bgX,y:l.bgTop||Math.max(0,l.top-fs*.28),w:l.bgW,h:l.bgH||Math.max(l.h+fs*.55,fs*1.35)};
+  }
+  return {x:Number.isFinite(left)?left:l.x,y:Number.isFinite(top)?top:l.top,w:Math.max(Number.isFinite(width)?width:(block.wrapWidth||l.wrapW||l.w),18),h:Math.max(block.el.offsetHeight||l.h+4,fs*1.35)};
+}
+function ensureOldCover(block){
+  if(!block||!block.el||!block.line)return;
+  if(!block.oldCover){block.oldCover=document.createElement('div');block.oldCover.className='old-text-cover';block.el.parentNode.insertBefore(block.oldCover,block.el);}
+  const l=block.line;const padX=Math.max(1.5,l.fontSize*0.10), padTop=Math.max(1.5,l.fontSize*0.18), padBottom=Math.max(2.5,l.fontSize*0.28);
+  let r={x:l.x-padX,y:l.top-padTop,w:l.w+padX*2,h:l.h+padTop+padBottom};
+  if(block.fmt&&block.fmt.bgEnabled){const bg=getBlockBgScreenRect(block); if(bg) r=bg;}
+  block.oldCover.style.left=r.x+'px';block.oldCover.style.top=r.y+'px';block.oldCover.style.width=r.w+'px';block.oldCover.style.height=r.h+'px';block.oldCover.style.background=(block.fmt&&block.fmt.bgEnabled)?normalizeHexColor(block.fmt.bgColor,'#ffffff'):'#ffffff';
+}
+function ensureBgFill(block){
+  if(!block||!block.el||!block.fmt||!block.fmt.bgEnabled){removeBgFill(block);return;}
+  const r=getBlockBgScreenRect(block); if(!r)return;
+  if(!block.bgFill){block.bgFill=document.createElement('div');block.bgFill.className='bg-fill-preview';block.el.parentNode.insertBefore(block.bgFill,block.el);}
+  block.bgFill.style.left=r.x+'px';block.bgFill.style.top=r.y+'px';block.bgFill.style.width=r.w+'px';block.bgFill.style.height=r.h+'px';block.bgFill.style.background=normalizeHexColor(block.fmt.bgColor,'#ffffff');
+}
+
+
+function normalizeHexColor(v,fallback){
+  v=String(v||'').trim();
+  if(/^#[0-9a-f]{6}$/i.test(v))return v.toLowerCase();
+  if(/^#[0-9a-f]{3}$/i.test(v))return '#'+v.slice(1).split('').map(c=>c+c).join('').toLowerCase();
+  const m=v.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if(m){return '#'+[m[1],m[2],m[3]].map(n=>Math.max(0,Math.min(255,parseInt(n,10))).toString(16).padStart(2,'0')).join('');}
+  return fallback||'#ffffff';
+}
+function colorToPdfRgb(hex){
+  hex=normalizeHexColor(hex,'#000000').replace('#','');
+  return {r:parseInt(hex.slice(0,2),16)/255,g:parseInt(hex.slice(2,4),16)/255,b:parseInt(hex.slice(4,6),16)/255};
+}
+function estimateBlockColors(pageObj,line){
+  try{
+    const ctx=pageObj.canvas.getContext('2d',{willReadFrequently:true});
+    const sampleY=Math.max(0,Math.min(pageObj.canvas.height-1,Math.floor(line.top+line.h*0.52)));
+    const startX=Math.max(0,Math.floor(line.x-2));
+    const endX=Math.min(pageObj.canvas.width-1,Math.ceil(line.x+line.w+2));
+    const data=ctx.getImageData(startX,Math.max(0,Math.floor(line.top-2)),Math.max(3,endX-startX),Math.max(3,Math.ceil(line.h+4))).data;
+    let r=0,g=0,b=0,count=0;
+    for(let i=0;i<data.length;i+=16){r+=data[i];g+=data[i+1];b+=data[i+2];count++;}
+    if(!count) return {bgEnabled:false,bgColor:'#ffffff',textColor:'#111111'};
+    r/=count;g/=count;b/=count;
+    const lum=0.2126*r+0.7152*g+0.0722*b;
+    if(lum<110){
+      // Find the continuous dark rectangle/band behind the text. This helps black header cells
+      // such as "A) Payment To:" keep their full black background instead of only the text width.
+      const row=ctx.getImageData(0,sampleY,pageObj.canvas.width,1).data;
+      const isDark=x=>{const i=x*4;return (0.2126*row[i]+0.7152*row[i+1]+0.0722*row[i+2])<120;};
+      let cx=Math.max(0,Math.min(pageObj.canvas.width-1,Math.floor(line.x+line.w/2)));
+      while(cx>0&&!isDark(cx))cx--;
+      let left=cx,right=cx;
+      while(left>0&&isDark(left-1))left--;
+      while(right<pageObj.canvas.width-1&&isDark(right+1))right++;
+      const bandW=Math.max(line.w+4,right-left+1);
+      return {bgEnabled:true,bgColor:'#000000',textColor:'#ffffff',bgX:left,bgTop:Math.max(0,line.top-line.fontSize*.25),bgW:bandW,bgH:Math.max(line.h+line.fontSize*.55,line.fontSize*1.35)};
+    }
+    return {bgEnabled:false,bgColor:'#ffffff',textColor:'#111111'};
+  }catch(e){return {bgEnabled:false,bgColor:'#ffffff',textColor:'#111111'};}
+}
+function cloneFmt(f){return {bold:!!(f&&f.bold),italic:!!(f&&f.italic),highlight:!!(f&&f.highlight),bgEnabled:!!(f&&f.bgEnabled),bgColor:normalizeHexColor(f&&f.bgColor,'#ffffff'),textColor:normalizeHexColor(f&&f.textColor,'#111111')}}
+function sameFmt(a,b){a=cloneFmt(a);b=cloneFmt(b);return a.bold===b.bold&&a.italic===b.italic&&a.highlight===b.highlight&&a.bgEnabled===b.bgEnabled&&a.bgColor===b.bgColor&&a.textColor===b.textColor}
+function applyBlockStyle(block){
+  if(!block||!block.el)return;
+  const f=cloneFmt(block.fmt);
+  block.el.classList.toggle('fmt-bold',f.bold);
+  block.el.classList.toggle('fmt-italic',f.italic);
+  block.el.classList.toggle('fmt-highlight',f.highlight);
+  block.el.style.fontWeight=f.bold?'700':'';
+  block.el.style.fontStyle=f.italic?'italic':'';
+  if(f.bgEnabled){block.el.style.backgroundColor=f.bgColor;}
+  block.el.style.color=f.textColor||'#111111';
+  applyImmediatePreviewStyle(block);
+}
+function applyImmediatePreviewStyle(block){
+  if(block.isNew){const f=cloneFmt(block.fmt);removeOldCover(block);block.el.classList.add('changed');block.el.style.color=f.textColor||'#111111';block.el.style.background=f.bgEnabled?f.bgColor:(f.highlight?'rgba(251,191,36,.55)':'#fff');return;}
+  if(!block||!block.el)return;
+  const el=block.el;
+  const changed=!!block.changed;
+  if(changed){
+    ensureOldCover(block);
+    // After Apply Text, show the edited text immediately and cover the old PDF text underneath.
+    const f=cloneFmt(block.fmt);
+    el.style.color=f.textColor||'#111111';
+    ensureBgFill(block);
+    el.style.background=f.bgEnabled?'transparent':(f.highlight?'rgba(251,191,36,.55)':'#fff');
+    el.style.borderColor='rgba(34,197,94,.8)';
+    el.style.zIndex='12';
+    el.style.overflow='visible';
+    el.style.whiteSpace='pre';
+    el.style.wordBreak='normal';
+    // Keep the edited text inside the detected field/column width and wrap longer text.
+    const fs=parseFloat(el.style.fontSize||'12');
+    const ww=Math.max(block.wrapWidth||block.line.wrapW||block.line.w, 18);
+    el.style.width=ww+'px';
+    el.style.minHeight=Math.max(block.line.h+4,fs*1.35)+'px';
+    el.style.height='auto';
+    el.style.whiteSpace='pre-wrap';
+    el.style.overflowWrap='anywhere';
+    el.style.wordBreak='break-all';
+  }else if(!el.classList.contains('editing')){
+    removeOldCover(block);
+    el.style.color='';
+    el.style.background='';
+    el.style.borderColor='';
+    el.style.zIndex='';
+    el.style.overflow='hidden';
+    el.style.whiteSpace='pre-wrap';
+    el.style.wordBreak='break-word';
+    el.style.width=Math.max(block.wrapWidth||block.line.wrapW||block.line.w+4,18)+'px';
+    el.style.height=Math.max(block.line.h+4,12)+'px';
+  }
+}
+function setFormatButtonsEnabled(enabled){
+  ['boldBtn','italicBtn','highlightBtn'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=!enabled;});
+}
+function updateFormatButtons(){
+  const b=selectedBlock||activeBlock;
+  const enabled=!!b&&editMode;
+  setFormatButtonsEnabled(enabled);
+  const f=cloneFmt(b&&b.fmt);
+  const bold=document.getElementById('boldBtn'), italic=document.getElementById('italicBtn'), high=document.getElementById('highlightBtn');
+  if(bold)bold.classList.toggle('active',enabled&&f.bold);
+  if(italic)italic.classList.toggle('active',enabled&&f.italic);
+  if(high)high.classList.toggle('active',enabled&&f.highlight);
+}
+function toggleBlockFormat(kind){
+  const b=activeBlock||selectedBlock;
+  if(!b||!editMode){toast('Select a text block first');return;}
+  b.fmt=cloneFmt(b.fmt);
+  b.fmt[kind]=!b.fmt[kind];
+  applyBlockStyle(b);
+  markBlockChanged(b);
+  updateFormatButtons();
+}
+
+function blockWrapWidth(block){return parseFloat(block.el.style.width)||block.wrapWidth||block.line.wrapW||block.line.w||80}
+function startBlockEdit(block){
+  if(activeBlock&&activeBlock!==block)finishBlockEdit();
+  selectedBlock=block;activeBlock=block;
+  const el=block.el;
+  if(!block._normalStyle){block._normalStyle={width:el.style.width,height:el.style.height,minWidth:el.style.minWidth,minHeight:el.style.minHeight,overflow:el.style.overflow,whiteSpace:el.style.whiteSpace,wordBreak:el.style.wordBreak};}
+  el.classList.add('editing');
+  el.contentEditable='true';
+  el.spellcheck=false;
+  el.setAttribute('autocomplete','off');
+  el.setAttribute('autocorrect','off');
+  el.setAttribute('autocapitalize','off');
+  const rect=el.getBoundingClientRect();
+  const editW=Math.max(block.wrapWidth||block.line.wrapW||block.line.w||rect.width, rect.width, 80);
+  el.style.width=editW+'px';
+  el.style.minWidth=editW+'px';
+  el.style.minHeight=Math.max(rect.height+8,parseFloat(el.style.fontSize||'12')*1.4)+'px';
+  el.style.height='auto';
+  el.style.overflow='visible';
+  el.style.whiteSpace='pre-wrap';
+  el.style.overflowWrap='anywhere';
+  el.style.wordBreak='break-word';
+  applyBlockStyle(block);
+  el.focus();
+  const sel=window.getSelection();const range=document.createRange();range.selectNodeContents(el);sel.removeAllRanges();sel.addRange(range);
+  document.getElementById('props').innerHTML=formatPropsHtml(block,true);
+  const ta=document.getElementById('textProp');ta.value=el.textContent;ta.oninput=e=>{el.textContent=e.target.value;markBlockChanged(block)};
+  updateFormatButtons();
+}
+function finishBlockEdit(){
+  if(!activeBlock)return;
+  const b=activeBlock, el=b.el;
+  el.contentEditable='false';
+  el.classList.remove('editing');
+  if(b._normalStyle){
+    el.style.width=b._normalStyle.width;el.style.height=b._normalStyle.height;el.style.minWidth=b._normalStyle.minWidth;el.style.minHeight=b._normalStyle.minHeight;el.style.overflow=b._normalStyle.overflow;el.style.whiteSpace=b._normalStyle.whiteSpace;el.style.wordBreak=b._normalStyle.wordBreak;
+  }
+  b.current=el.textContent;if(b.handle&&!el.contains(b.handle))el.appendChild(b.handle);if(b.resized){el.style.width=Math.max(blockWrapWidth(b),18)+'px';el.style.height='auto';}markBlockChanged(b);activeBlock=null;updateFormatButtons();updatePropsForEditMode();
+}
+function updatePropsForEditMode(){if(editMode)document.getElementById('props').innerHTML='<div class="help"><b>Edit Text Mode ON</b><br>Click another text block to edit it, or Submit Changes / Preview.</div>'}
+function markBlockChanged(block){block.current=block.el.textContent;block.changed=(block.current!==block.original)||!sameFmt(block.fmt,block.originalFmt)||!!block.moved||!!block.resized;block.el.classList.toggle('changed',block.changed);applyImmediatePreviewStyle(block);updateEditButtons()}
+function updateEditButtons(){const count=getChangedBlocks().length;document.getElementById('editCount').textContent=count+' edit'+(count===1?'':'s');document.getElementById('submitBtn').disabled=count===0||!sourceBytes;document.getElementById('revertBtn').disabled=count===0;document.getElementById('saveBtn').style.display='none';document.getElementById('continueBtn').style.display='none';previewBytes=null}
+function getChangedBlocks(){return pages.flatMap(p=>p.blocks).filter(b=>b.changed)}
+function revertActiveBlock(){if(!activeBlock)return;if(activeBlock.isNew){const b=activeBlock;const p=pages[b.pageIndex];if(p)p.blocks=p.blocks.filter(x=>x!==b);b.el.remove();activeBlock=null;selectedBlock=null;updateEditButtons();updateFormatButtons();updatePropsForEditMode();return;}activeBlock.el.textContent=activeBlock.original;activeBlock.fmt=cloneFmt(activeBlock.originalFmt);applyBlockStyle(activeBlock);markBlockChanged(activeBlock);finishBlockEdit()}
+function revertAllEdits(){if(activeBlock)finishBlockEdit();pages.forEach(p=>{p.blocks.filter(b=>b.isNew).forEach(b=>b.el.remove());p.blocks=p.blocks.filter(b=>!b.isNew);p.blocks.forEach(b=>{b.el.textContent=b.original;if(b.handle&&!b.el.contains(b.handle))b.el.appendChild(b.handle);b.current=b.original;b.fmt=cloneFmt(b.originalFmt);b.moved=false;b.resized=false;b.wrapWidth=b.line.wrapW||b.line.w;b.el.style.left=(b.line.x-2)+'px';b.el.style.top=(b.line.top-2)+'px';b.el.style.width=Math.max(b.wrapWidth,18)+'px';removeOldCover(b);applyBlockStyle(b);b.changed=false;b.el.classList.remove('changed')})});selectedBlock=null;updateEditButtons();updateFormatButtons();toast('Edits reverted')}
+function cleanPdfText(s){return String(s||'').replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g,' ').replace(/\r\n?/g,'\n')}
+function cleanTextLine(s){return String(s||'').replace(/[^\x20-\x7E\xA0-\xFF]/g,' ').replace(/\s+/g,' ').trim()}
+function wrapTextToWidth(text,font,size,maxWidth){
+  const paras=cleanPdfText(text).split('\n');
+  const out=[];
+  const pushBrokenWord=(word)=>{
+    let chunk='';
+    for(const ch of word){
+      const test=chunk+ch;
+      if(chunk && font.widthOfTextAtSize(test,size)>maxWidth){
+        out.push(chunk);
+        chunk=ch;
+      }else{
+        chunk=test;
+      }
+    }
+    return chunk;
+  };
+  for(const para of paras){
+    const words=para.trim().split(/\s+/).filter(Boolean);
+    if(!words.length){out.push('');continue;}
+    let line='';
+    for(const word of words){
+      if(font.widthOfTextAtSize(word,size)>maxWidth){
+        if(line){out.push(line);line='';}
+        line=pushBrokenWord(word);
+        continue;
+      }
+      const test=line ? line+' '+word : word;
+      if(font.widthOfTextAtSize(test,size)<=maxWidth){
+        line=test;
+      }else{
+        if(line)out.push(line);
+        line=word;
+      }
+    }
+    if(line)out.push(line);
+  }
+  return out;
+}
+async function buildEditedVectorPdf(){
+  const {PDFDocument,rgb,StandardFonts}=PDFLib;
+  const doc=await PDFDocument.load(new Uint8Array(bytesCopy(sourceBytes)),{ignoreEncryption:true});
+  const fontRegular=await doc.embedFont(StandardFonts.Helvetica);
+  const fontBold=await doc.embedFont(StandardFonts.HelveticaBold);
+  const fontItalic=await doc.embedFont(StandardFonts.HelveticaOblique);
+  const fontBoldItalic=await doc.embedFont(StandardFonts.HelveticaBoldOblique);
+
+  for(const block of getChangedBlocks()){
+    const pg=doc.getPage(block.pageIndex);
+    const vp=pages[block.pageIndex].vp;
+    const l=block.line;
+
+    // Use PDF.js' own coordinate conversion instead of estimating with scale.
+    // This keeps the white-out rectangle and replacement text aligned to the original PDF text.
+    const padX=Math.max(1.5,l.fontSize*0.10);
+    const padTop=Math.max(1.5,l.fontSize*0.18);
+    const padBottom=Math.max(2.5,l.fontSize*0.28);
+
+    const [rx1,ry1]=vp.convertToPdfPoint(l.x-padX,l.top-padTop);
+    const [rx2,ry2]=vp.convertToPdfPoint(l.x+l.w+padX,l.top+l.h+padBottom);
+    const rectX=Math.min(rx1,rx2);
+    const rectY=Math.min(ry1,ry2);
+    const rectW=Math.abs(rx2-rx1);
+    const rectH=Math.abs(ry2-ry1);
+
+    // Cover the original text at its actual PDF position. Typewriter blocks are new, so they do not need old-text cover.
+    if(!block.isNew){
+      const coverCol=colorToPdfRgb(block.fmt&&block.fmt.bgEnabled?block.fmt.bgColor:'#ffffff');
+      pg.drawRectangle({
+        x:rectX,
+        y:rectY,
+        width:Math.max(rectW,8),
+        height:Math.max(rectH,8),
+        color:rgb(coverCol.r,coverCol.g,coverCol.b),
+        opacity:1
+      });
+    }
+
+    const txt=cleanPdfText(block.current).trim();
+    if(txt){
+      const elLeft=parseFloat(block.el.style.left);
+      const elTop=parseFloat(block.el.style.top);
+      const screenTextX=(Number.isFinite(elLeft)?elLeft+2:l.x);
+      const baselineOffset=l.base-(l.top-2);
+      const screenBaseY=(Number.isFinite(elTop)?elTop+baselineOffset:l.base);
+      const [textX,textBaseY]=vp.convertToPdfPoint(screenTextX,screenBaseY);
+      // Use the detected PDF font size, not the visual box height.
+      const detectedPdfFs = l.fontSize / scale;
+      const fs=Math.max(5,Math.min(72,detectedPdfFs*1.02));
+      const bf=cloneFmt(block.fmt);
+      const chosenFont = bf.bold && bf.italic ? fontBoldItalic : (bf.bold ? fontBold : (bf.italic ? fontItalic : fontRegular));
+      const screenWrapW=Math.max(parseFloat(block.el.style.width)||block.wrapWidth||l.wrapW||l.w,18);
+      const [rightPdfX]=vp.convertToPdfPoint(screenTextX+screenWrapW,screenBaseY);
+      const maxTextW=Math.max(8,Math.abs(rightPdfX-textX));
+      const lines=wrapTextToWidth(txt,chosenFont,fs,maxTextW).map(cleanTextLine).filter((x,i,a)=>x||i<a.length-1);
+      const lineHeight=fs*1.15;
+      const startY=textBaseY-(fs*0.12);
+      const newTextW=Math.max(...lines.map(line=>chosenFont.widthOfTextAtSize(line,fs)),8);
+      const newRectX=textX-2;
+      const newRectY=startY-(lines.length-1)*lineHeight-(fs*0.35);
+      const newRectW=Math.min(maxTextW+4,Math.max(newTextW+4,rectW));
+      const newRectH=(Math.max(lines.length,1)*lineHeight)+(fs*0.22);
+      const unionX=Math.min(rectX,newRectX), unionY=Math.min(rectY,newRectY);
+      const unionW=Math.max(rectX+rectW,newRectX+newRectW)-unionX;
+      const unionH=Math.max(rectY+rectH,newRectY+newRectH)-unionY;
+      const bgCol=colorToPdfRgb(bf.bgEnabled?bf.bgColor:'#ffffff');
+      const textCol=colorToPdfRgb(bf.textColor||'#111111');
+      if(bf.bgEnabled){
+        const bgScreen=getBlockBgScreenRect(block);
+        if(bgScreen){
+          const [bx1,by1]=vp.convertToPdfPoint(bgScreen.x,bgScreen.y);
+          const [bx2,by2]=vp.convertToPdfPoint(bgScreen.x+bgScreen.w,bgScreen.y+bgScreen.h);
+          const bgX=Math.min(bx1,bx2), bgY=Math.min(by1,by2), bgW=Math.abs(bx2-bx1), bgH=Math.abs(by2-by1);
+          pg.drawRectangle({x:bgX,y:bgY,width:Math.max(bgW,8),height:Math.max(bgH,8),color:rgb(bgCol.r,bgCol.g,bgCol.b),opacity:1});
+        } else {
+          pg.drawRectangle({x:unionX,y:unionY,width:Math.max(unionW,8),height:Math.max(unionH,8),color:rgb(bgCol.r,bgCol.g,bgCol.b),opacity:1});
+        }
+      } else {
+        pg.drawRectangle({x:unionX,y:unionY,width:Math.max(unionW,8),height:Math.max(unionH,8),color:rgb(bgCol.r,bgCol.g,bgCol.b),opacity:1});
+      }
+      if(bf.highlight){
+        pg.drawRectangle({x:newRectX,y:newRectY,width:newRectW,height:newRectH,color:rgb(1,0.92,0.25),opacity:.55});
+      }
+      lines.forEach((line,i)=>{
+        pg.drawText(line,{x:textX,y:startY-(i*lineHeight),size:fs,font:chosenFont,color:rgb(textCol.r,textCol.g,textCol.b)});
+      });
+    }
+  }
+  return await doc.save();
+}
+
+async function flattenPdfToImages(vectorBytes){
+  // Important: pdf-lib white-out only visually covers old text. The old text can still exist
+  // underneath in the PDF content stream and may reappear during later extraction/search.
+  // This flatten step renders the edited preview to page images, so the saved PDF contains
+  // exactly what the user sees in the preview and not the hidden previous text.
+  const {PDFDocument}=PDFLib;
+  const rendered=await pdfjsLib.getDocument({data:bytesCopy(vectorBytes)}).promise;
+  const out=await PDFDocument.create();
+  for(let n=1;n<=rendered.numPages;n++){
+    const page=await rendered.getPage(n);
+    const baseVp=page.getViewport({scale:1});
+    const renderScale=2.0;
+    const vp=page.getViewport({scale:renderScale});
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.ceil(vp.width);
+    canvas.height=Math.ceil(vp.height);
+    const ctx=canvas.getContext('2d',{alpha:false});
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    await page.render({canvasContext:ctx,viewport:vp}).promise;
+    const jpgDataUrl=canvas.toDataURL('image/jpeg',0.94);
+    const jpgBytes=await fetch(jpgDataUrl).then(r=>r.arrayBuffer());
+    const img=await out.embedJpg(jpgBytes);
+    const pdfPage=out.addPage([baseVp.width,baseVp.height]);
+    pdfPage.drawImage(img,{x:0,y:0,width:baseVp.width,height:baseVp.height});
+  }
+  return await out.save();
+}
+
+async function buildPreviewPdf(){
+  const vectorBytes=await buildEditedVectorPdf();
+  return await flattenPdfToImages(vectorBytes);
+}
+
+
+function snapshotEdits(){
+  return pages.flatMap(p=>p.blocks).filter(b=>b.changed).map(b=>({
+    pageIndex:b.pageIndex,
+    idx:b.idx,
+    isNew:!!b.isNew,
+    current:b.current,
+    fmt:cloneFmt(b.fmt),
+    changed:true,
+    moved:!!b.moved,
+    resized:!!b.resized,
+    wrapWidth:b.wrapWidth,
+    left:parseFloat(b.el.style.left),
+    top:parseFloat(b.el.style.top),
+    width:parseFloat(b.el.style.width),
+    minHeight:parseFloat(b.el.style.minHeight),
+    fontSize:b.line&&b.line.fontSize
+  }));
+}
+function reapplyEditSnapshot(snapshot){
+  if(!snapshot||!snapshot.length)return;
+  const map=new Map(snapshot.map(e=>[e.pageIndex+':'+e.idx,e]));
+  snapshot.filter(e=>e.isNew).forEach(e=>{
+    if(!pages[e.pageIndex]) return;
+    createTypewriterBlock(e.pageIndex,Number.isFinite(e.left)?e.left:40,Number.isFinite(e.top)?e.top:40,{idx:e.idx,current:e.current,text:e.current,width:Number.isFinite(e.width)?e.width:180,height:Number.isFinite(e.minHeight)?e.minHeight:24,fontSize:Number.isFinite(e.fontSize)?e.fontSize:16,fmt:e.fmt,moved:e.moved,resized:e.resized});
+    if(activeBlock)finishBlockEdit();
+  });
+  pages.forEach(p=>p.blocks.forEach(b=>{
+    const e=map.get(b.pageIndex+':'+b.idx);
+    if(e&&e.isNew)return;
+    if(!e)return;
+
+    // Restore text, formatting, movement and resize data from the working-copy snapshot.
+    b.current=e.current;
+    b.fmt=cloneFmt(e.fmt);
+    b.moved=!!e.moved;
+    b.resized=!!e.resized;
+    b.wrapWidth=Number.isFinite(e.wrapWidth)?e.wrapWidth:b.wrapWidth;
+    b.changed=true;
+
+    b.el.textContent=e.current;
+    if(b.handle&&!b.el.contains(b.handle))b.el.appendChild(b.handle);
+    if(Number.isFinite(e.left))b.el.style.left=e.left+'px';
+    if(Number.isFinite(e.top))b.el.style.top=e.top+'px';
+    if(Number.isFinite(e.width)){
+      b.el.style.width=Math.max(e.width,18)+'px';
+      b.wrapWidth=Math.max(e.width,18);
+    }
+    if(Number.isFinite(e.minHeight))b.el.style.minHeight=Math.max(e.minHeight,12)+'px';
+
+    applyBlockStyle(b);
+    applyImmediatePreviewStyle(b);
+    b.el.classList.add('changed');
+  }));
+  updateEditButtons();
+}
+async function submitChanges(){
+  if(activeBlock)finishBlockEdit();
+  if(getChangedBlocks().length===0){toast('No edits to submit');return}
+  try{
+    lastEditSnapshot=snapshotEdits();
+    toast('Generating preview...');
+    const bytes=await buildPreviewPdf();
+    previewBytes=bytesCopy(bytes);
+    // Preview is separate from the editable working copy. Do not replace sourceBytes.
+    await renderPdf(previewBytes,{previewOnly:true});
+    editMode=false;selectedBlock=null;activeBlock=null;updateFormatButtons();
+    document.getElementById('saveBtn').style.display='';
+    document.getElementById('continueBtn').style.display='';
+    document.getElementById('editBtn').disabled=true;const tb=document.getElementById('typeBtn');if(tb){tb.disabled=true;tb.classList.remove('active')}typewriterMode=false;
+    document.getElementById('submitBtn').disabled=true;
+    document.getElementById('revertBtn').disabled=true;
+    setFormatButtonsEnabled(false);
+    document.getElementById('editCount').textContent=lastEditSnapshot.length+' previewed edit'+(lastEditSnapshot.length===1?'':'s');
+    document.getElementById('banner').className='banner show';
+    document.getElementById('banner').textContent='Preview ready. Save PDF to download, or Continue Editing to return to editable mode.';
+    document.getElementById('props').innerHTML='<div class="help"><b>Preview ready.</b><br>This is only a preview. Click <b>Continue Editing</b> to make more changes, or <b>Save PDF</b> to flatten and download the final document.</div>';
+    toast('Preview updated')
+  }catch(e){console.error(e);toast('Submit error: '+e.message)}
+}
+async function continueEditing(){
+  if(!sourceBytes){toast('No working PDF loaded');return}
+  try{
+    toast('Returning to editable mode...');
+    await renderPdf(sourceBytes,{previewOnly:false});
+    reapplyEditSnapshot(lastEditSnapshot);
+    previewBytes=null;
+    document.getElementById('saveBtn').style.display='none';
+    document.getElementById('continueBtn').style.display='none';
+    document.getElementById('editBtn').disabled=false;const tb=document.getElementById('typeBtn');if(tb)tb.disabled=false;
+    editMode=true;
+    pages.forEach(p=>p.layer.classList.add('active'));
+    document.getElementById('editBtn').textContent='Exit Edit Mode';
+    document.getElementById('banner').className='banner edit';
+    document.getElementById('banner').textContent='Edit Text Mode ON — continue editing, then Submit Changes / Preview again.';
+    updatePropsForEditMode();updateFormatButtons();updateEditButtons();
+  }catch(e){console.error(e);toast('Continue editing error: '+e.message)}
+}
+
+function savePdf(){if(!previewBytes){toast('Submit Changes / Preview first');return}const blob=new Blob([previewBytes],{type:'application/pdf'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='edited.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),4000)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activeBlock)finishBlockEdit();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();if(previewBytes)savePdf();else submitChanges()}});
+
+function preventDefaults(e){e.preventDefault();e.stopPropagation()}
+document.addEventListener('dragover',preventDefaults);
+document.addEventListener('drop',e=>{preventDefaults(e);const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)loadFile(f)});
+
+
+// Missing navigation/editor helpers restored
+async function renderThumb(page,n){
+  const thumbs=document.getElementById('thumbs');
+  if(!thumbs) return;
+  const item=document.createElement('div');
+  item.className='thumb';
+  item.dataset.page=String(n-1);
+  item.onclick=()=>goPage(n-1);
+  const cv=document.createElement('canvas');
+  const tvp=page.getViewport({scale:0.18});
+  cv.width=Math.ceil(tvp.width); cv.height=Math.ceil(tvp.height);
+  await page.render({canvasContext:cv.getContext('2d'),viewport:tvp}).promise;
+  const label=document.createElement('span');
+  label.textContent=String(n);
+  item.append(cv,label);
+  thumbs.appendChild(item);
+}
+
+function goPage(idx){
+  if(!pages.length) return;
+  currentPage=Math.max(0,Math.min(idx,pages.length-1));
+  const p=pages[currentPage];
+  if(p && p.wrap) p.wrap.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.thumb').forEach((t,i)=>t.classList.toggle('active',i===currentPage));
+  const info=document.getElementById('pageInfo');
+  if(info) info.textContent=(currentPage+1)+' / '+pages.length;
+}
+
+function toggleTypewriterMode(){
+  if(!pdfDoc){toast('Open a PDF first');return;}
+  if(!editMode){
+    editMode=true;
+    pages.forEach(p=>p.layer.classList.add('active'));
+    const eb=document.getElementById('editBtn');if(eb)eb.textContent='Exit Edit Mode';
+  }
+  typewriterMode=!typewriterMode;
+  const btn=document.getElementById('typeBtn');if(btn)btn.classList.toggle('active',typewriterMode);
+  const banner=document.getElementById('banner');
+  if(typewriterMode){
+    if(banner){banner.className='banner edit';banner.textContent='Typewriter ON — click any blank box/area on the PDF to add new text. Drag or resize it after adding.';}
+    document.getElementById('props').innerHTML='<div class="help"><b>Typewriter ON</b><br>Click any blank area or form box to add new text. Then drag, resize, format, Preview, and Save.</div>';
+  }else{
+    if(banner){banner.className='banner edit';banner.textContent='Edit Text Mode ON — click existing text to edit, or turn Typewriter ON to add new text.';}
+    updatePropsForEditMode();
+  }
+}
+
+function toggleEditMode(){
+  if(!pdfDoc) return;
+  if(activeBlock) finishBlockEdit();
+  editMode=!editMode;
+  pages.forEach(p=>p.layer.classList.toggle('active',editMode));
+  const btn=document.getElementById('editBtn');
+  const banner=document.getElementById('banner');
+  if(editMode){
+    const tb=document.getElementById('typeBtn');if(tb)tb.disabled=false;
+    if(btn) btn.textContent='Exit Edit Mode';
+    if(banner){banner.className='banner edit';banner.textContent='Edit Text Mode ON — click text, Apply Text to show it immediately, then Submit Changes / Preview.';}
+    updatePropsForEditMode();updateFormatButtons();
+  }else{
+    typewriterMode=false;const tb=document.getElementById('typeBtn');if(tb)tb.classList.remove('active');
+    if(btn) btn.textContent='Edit Text Mode';
+    if(banner){banner.className='banner show';banner.textContent='Edit mode off. Submit Changes / Preview before saving.';}
+    setFormatButtonsEnabled(false);updateFormatButtons();document.getElementById('props').innerHTML='<div class="help">Edit mode is off. Turn on <b>Edit Text Mode</b> to change detected text blocks.</div>';
+  }
+}
+
+
+// Robust file input + drag/drop binding
+window.addEventListener('DOMContentLoaded',()=>{
+  const input=document.getElementById('fileInput');
+  if(input) input.addEventListener('change',handleFileInput);
+  const workspace=document.getElementById('workspace');
+  if(workspace){
+    workspace.addEventListener('dragover',e=>{e.preventDefault();});
+    workspace.addEventListener('drop',e=>{
+      e.preventDefault();
+      const file=e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(file) loadFile(file);
+    });
+  }
+});
+
+
+</script>
+</body>
+</html>

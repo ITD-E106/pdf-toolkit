@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Split PDF by Ranges</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#242a3d;--border:rgba(255,255,255,.12);--accent:#4f7cff;--red:#ef4444;--text:#e8eaf0;--muted:#9ca3c0;--muted2:#5d6480;--green:#22c55e;--orange:#f97316}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}header{height:58px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 18px;position:sticky;top:0;z-index:3}.logo{font-weight:800;letter-spacing:-.02em;white-space:nowrap}.logo span{color:var(--accent)}main{max-width:1180px;margin:0 auto;padding:24px}.grid{display:grid;grid-template-columns:400px 1fr;gap:20px}.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.drop{border:2px dashed var(--border);border-radius:14px;padding:26px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);transition:.2s}.drop:hover,.drop.drag{border-color:var(--accent);background:rgba(79,124,255,.07)}.drop h2{font-size:18px;margin:0 0 8px}.drop p{margin:0;color:var(--muted);font-size:13px}.btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 13px;border-radius:9px;cursor:pointer;font-weight:700}.btn:hover:not(:disabled){filter:brightness(1.12)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}.btn.green{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.35);color:#bbf7d0}.btn.danger{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.35);color:#fecaca}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.viewer{min-height:550px;display:flex;flex-direction:column}.viewer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--muted);font-size:13px;gap:12px}.pages{background:#0b0d12;border-radius:12px;border:1px solid var(--border);padding:18px;overflow:auto;min-height:470px;max-height:calc(100vh - 145px);display:flex;flex-direction:column;align-items:center;gap:16px}.page-wrap{background:white;box-shadow:0 6px 24px rgba(0,0,0,.45);position:relative}.page-wrap canvas{display:block}.page-num{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:white;border-radius:6px;padding:2px 7px;font-size:11px}.input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:11px 12px;font-size:14px}.input:focus{outline:none;border-color:var(--accent)}.note{color:var(--muted);font-size:13px;line-height:1.5}.label{font-size:12px;color:var(--muted2);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 7px}.toast{position:fixed;right:20px;bottom:20px;background:var(--surface3);border:1px solid var(--border);padding:11px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s;z-index:9}.toast.show{opacity:1}.results{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}.results table{width:100%;border-collapse:collapse;font-size:13px}.results th,.results td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}.results th{background:var(--surface2);color:var(--muted);font-size:12px}.results tr:last-child td{border-bottom:0}.results tr{cursor:pointer}.results tr:hover td{background:rgba(79,124,255,.08)}.results tr.active td{background:rgba(79,124,255,.16)}.filename{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#bfdbfe}.small{font-size:12px;color:var(--muted2)}.pill{font-size:11px;color:var(--muted);background:rgba(255,255,255,.06);border-radius:999px;padding:3px 8px;white-space:nowrap}@media(max-width:900px){.grid{grid-template-columns:1fr}.pages{max-height:none}header{overflow:auto}.logo{flex:0 0 auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PDF<span>Split</span></div>
+  <button class="btn" onclick="chooseFile()">Open PDF</button>
+  <button class="btn primary" id="previewBtn" onclick="previewRanges()" disabled>Preview Split</button>
+  <button class="btn green" id="saveBtn" onclick="saveSplitPdfs()" style="display:none">Save Split PDFs</button>
+  <button class="btn danger" onclick="clearAll()">Clear</button>
+</header>
+<main>
+  <div class="grid">
+    <section class="card">
+      <div id="drop" class="drop" onclick="chooseFile()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+        <h2>Drop one PDF here</h2>
+        <p>Enter page ranges, preview the output files, then save.</p>
+      </div>
+      <input id="fileInput" type="file" accept=".pdf,application/pdf" hidden onchange="loadFile(this.files[0]);this.value=''">
+
+      <div class="label">Page ranges</div>
+      <input id="rangeInput" class="input" placeholder="e.g. 1-3, 4-6 or (1,3), (4,6)" oninput="markPreviewStale()">
+      <p class="note">
+        Page numbers are <b>1-based</b>. Example: <b>1-3, 4-6</b> creates
+        <span class="filename">output_1_3.pdf</span> and <span class="filename">output_4_6.pdf</span>.
+      </p>
+      <div class="actions">
+        <button class="btn primary" id="previewBtn2" onclick="previewRanges()" disabled>Preview Split</button>
+        <button class="btn green" id="saveBtn2" onclick="saveSplitPdfs()" style="display:none">Save Split PDFs</button>
+      </div>
+
+      <div id="resultBox" class="results">
+        <table>
+          <thead><tr><th>Output file</th><th>Pages</th><th>Count</th></tr></thead>
+          <tbody id="resultRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card viewer">
+      <div class="viewer-head">
+        <b id="previewTitle">PDF Preview</b>
+        <span id="status">No PDF loaded</span>
+      </div>
+      <div id="pages" class="pages"><p class="note">PDF pages will appear here.</p></div>
+    </section>
+  </div>
+</main>
+<div id="toast" class="toast"></div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let srcBytes = null;
+let srcPdfJs = null;
+let pageCount = 0;
+let splitOutputs = [];
+let activeOutputIndex = -1;
+
+function toast(message){
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function setPreviewEnabled(enabled){
+  document.getElementById('previewBtn').disabled = !enabled;
+  document.getElementById('previewBtn2').disabled = !enabled;
+}
+
+function setSaveVisible(visible){
+  document.getElementById('saveBtn').style.display = visible ? '' : 'none';
+  document.getElementById('saveBtn2').style.display = visible ? '' : 'none';
+}
+
+function chooseFile(){
+  document.getElementById('fileInput').click();
+}
+
+function dragOver(event){
+  event.preventDefault();
+  document.getElementById('drop').classList.add('drag');
+}
+
+function dragLeave(){
+  document.getElementById('drop').classList.remove('drag');
+}
+
+function dropFile(event){
+  event.preventDefault();
+  dragLeave();
+  loadFile(event.dataTransfer.files[0]);
+}
+
+async function loadFile(file){
+  if(!file) return;
+  if(!(file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))){
+    toast('Please choose a PDF file');
+    return;
+  }
+
+  try{
+    clearPreviewState();
+    const buffer = await file.arrayBuffer();
+    srcBytes = new Uint8Array(buffer.slice(0));
+    srcPdfJs = await pdfjsLib.getDocument({ data: srcBytes.slice().buffer }).promise;
+    pageCount = srcPdfJs.numPages;
+    setPreviewEnabled(true);
+    document.getElementById('status').textContent = file.name + ' — ' + pageCount + ' page(s)';
+    await renderPdf(srcPdfJs, 'Original PDF Preview');
+    toast('PDF loaded');
+  }catch(error){
+    console.error(error);
+    alert('Open PDF error: ' + (error.stack || error.message));
+  }
+}
+
+function clearPreviewState(){
+  splitOutputs = [];
+  activeOutputIndex = -1;
+  setSaveVisible(false);
+  document.getElementById('resultBox').style.display = 'none';
+  document.getElementById('resultRows').innerHTML = '';
+}
+
+function markPreviewStale(){
+  clearPreviewState();
+}
+
+function parseRanges(input, totalPages){
+  const raw = input.trim();
+  if(!raw) throw new Error('Enter at least one page range, such as 1-3, 4-6');
+
+  let normalized = raw
+    .replace(/[\[\]]/g, '')
+    .replace(/\((\s*\d+\s*)[,;](\s*\d+\s*)\)/g, '$1-$2');
+
+  const parts = normalized.split(',').map(p => p.trim()).filter(Boolean);
+  const ranges = [];
+
+  for(const part of parts){
+    let start;
+    let end;
+
+    if(part.includes('-')){
+      const pieces = part.split('-').map(v => v.trim());
+      if(pieces.length !== 2) throw new Error('Invalid range: ' + part);
+      start = Number.parseInt(pieces[0], 10);
+      end = Number.parseInt(pieces[1], 10);
+    }else{
+      start = Number.parseInt(part, 10);
+      end = start;
+    }
+
+    if(!Number.isInteger(start) || !Number.isInteger(end)){
+      throw new Error('Invalid range: ' + part);
+    }
+    if(start < 1){
+      throw new Error('Page numbers start at 1. Invalid range: ' + start + '-' + end);
+    }
+    if(end > totalPages){
+      throw new Error('Range ' + start + '-' + end + ' exceeds total page count (' + totalPages + ' pages).');
+    }
+    if(start > end){
+      throw new Error('Invalid range ' + start + '-' + end + ': start page is greater than end page.');
+    }
+
+    ranges.push({ start, end, filename: 'output_' + start + '_' + end + '.pdf' });
+  }
+
+  if(!ranges.length) throw new Error('No valid page ranges found');
+  return ranges;
+}
+
+async function previewRanges(){
+  if(!srcBytes || !pageCount){
+    toast('Open a PDF first');
+    return;
+  }
+
+  try{
+    clearPreviewState();
+    const ranges = parseRanges(document.getElementById('rangeInput').value, pageCount);
+    const { PDFDocument } = PDFLib;
+    const src = await PDFDocument.load(srcBytes.slice(), { ignoreEncryption: true });
+    const outputs = [];
+
+    for(const range of ranges){
+      const out = await PDFDocument.create();
+      const zeroBased = [];
+      for(let p = range.start; p <= range.end; p++) zeroBased.push(p - 1);
+      const copied = await out.copyPages(src, zeroBased);
+      copied.forEach(page => out.addPage(page));
+      const bytes = await out.save();
+      outputs.push({
+        start: range.start,
+        end: range.end,
+        count: range.end - range.start + 1,
+        filename: range.filename,
+        bytes
+      });
+    }
+
+    splitOutputs = outputs;
+    renderResultsTable();
+    setSaveVisible(true);
+    await showOutputPreview(0);
+    toast('Split preview ready');
+  }catch(error){
+    console.error(error);
+    alert('Split preview error: ' + (error.stack || error.message));
+  }
+}
+
+function renderResultsTable(){
+  const tbody = document.getElementById('resultRows');
+  tbody.innerHTML = '';
+
+  splitOutputs.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    tr.onclick = () => showOutputPreview(index);
+    tr.innerHTML = '<td class="filename">' + item.filename + '</td><td>' + item.start + '-' + item.end + '</td><td>' + item.count + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('resultBox').style.display = 'block';
+  updateActiveResultRow();
+}
+
+function updateActiveResultRow(){
+  const rows = Array.from(document.querySelectorAll('#resultRows tr'));
+  rows.forEach((row, index) => row.classList.toggle('active', index === activeOutputIndex));
+}
+
+async function showOutputPreview(index){
+  if(!splitOutputs[index]) return;
+  activeOutputIndex = index;
+  updateActiveResultRow();
+  const item = splitOutputs[index];
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(item.bytes).slice().buffer }).promise;
+  document.getElementById('status').textContent = item.filename + ' — pages ' + item.start + '-' + item.end;
+  await renderPdf(pdf, 'Preview: ' + item.filename);
+}
+
+async function renderPdf(pdf, title){
+  document.getElementById('previewTitle').textContent = title;
+  const holder = document.getElementById('pages');
+  holder.innerHTML = '';
+
+  for(let pageNum = 1; pageNum <= pdf.numPages; pageNum++){
+    const page = await pdf.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 1.05 });
+    const wrap = document.createElement('div');
+    wrap.className = 'page-wrap';
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    wrap.appendChild(canvas);
+    const label = document.createElement('div');
+    label.className = 'page-num';
+    label.textContent = pageNum;
+    wrap.appendChild(label);
+    holder.appendChild(wrap);
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  }
+}
+
+async function saveSplitPdfs(){
+  if(!splitOutputs.length){
+    await previewRanges();
+    if(!splitOutputs.length) return;
+  }
+
+  splitOutputs.forEach((item, index) => {
+    setTimeout(() => {
+      const blob = new Blob([item.bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = item.filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, index * 350);
+  });
+
+  toast('Downloading ' + splitOutputs.length + ' PDF file(s)');
+}
+
+function clearAll(){
+  srcBytes = null;
+  srcPdfJs = null;
+  pageCount = 0;
+  clearPreviewState();
+  setPreviewEnabled(false);
+  document.getElementById('rangeInput').value = '';
+  document.getElementById('status').textContent = 'No PDF loaded';
+  document.getElementById('previewTitle').textContent = 'PDF Preview';
+  document.getElementById('pages').innerHTML = '<p class="note">PDF pages will appear here.</p>';
+  toast('Cleared');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Watermark PDF — PDF Hub Centre</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+html,body{background:#020617;font-family:"Segoe UI",Arial,sans-serif;color:#fff;overflow-x:hidden;min-height:100vh;}
+
+:root{
+  --accent:#2563eb;--accent2:#7c3aed;--sky:#38bdf8;--red:#ef4444;
+  --surface:rgba(255,255,255,.075);--surface2:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.13);--muted:#9ca3c0;--muted2:#5d6480;
+  --text:#e8eaf0;--green:#22c55e;--orange:#f97316;
+}
+
+/* ── App shell ── */
+.wm-app{min-height:100vh;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 12% 10%,rgba(37,99,235,.38),transparent 32%),
+    radial-gradient(circle at 88% 18%,rgba(124,58,237,.28),transparent 34%),
+    radial-gradient(circle at 75% 88%,rgba(14,165,233,.18),transparent 38%),
+    linear-gradient(180deg,#020617 0%,#07122c 48%,#020617 100%);
+}
+.wm-glow{position:absolute;pointer-events:none;border-radius:50%;filter:blur(18px);opacity:.8;z-index:0;}
+.wm-glow-a{width:420px;height:420px;top:130px;left:-120px;background:rgba(37,99,235,.20);animation:glowA 8s ease-in-out infinite;}
+.wm-glow-b{width:500px;height:500px;top:120px;right:-180px;background:rgba(124,58,237,.18);animation:glowB 9s ease-in-out infinite;}
+@keyframes glowA{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes glowB{0%,100%{transform:translate(0,0)}50%{transform:translate(-35px,40px)}}
+.wm-grid{position:absolute;inset:0;opacity:.17;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:48px 48px;mask-image:radial-gradient(circle at center,black 0%,transparent 72%);z-index:0;}
+
+/* ── Header ── */
+.wm-header{
+  padding:28px 5% 22px;position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  animation:fadeDown .85s ease both;
+}
+.wm-brand{display:flex;align-items:center;gap:14px;}
+.wm-logo-btn{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#38bdf8);
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#fff;
+  box-shadow:0 14px 38px rgba(37,99,235,.42);text-decoration:none;}
+.wm-brand-text strong{display:block;font-size:17px;color:#fff;}
+.wm-brand-text span{display:block;color:#a9b7d0;font-size:12px;margin-top:1px;}
+.wm-pill{display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  color:#eaf2ff;font-weight:800;font-size:13px;backdrop-filter:blur(18px);}
+.pill-dot{width:9px;height:9px;background:#38bdf8;border-radius:50%;
+  box-shadow:0 0 14px rgba(56,189,248,.9);animation:pulseDot 1.7s infinite ease-in-out;}
+@keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.62}}
+.wm-breadcrumb{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.wm-breadcrumb a{color:#60a5fa;text-decoration:none;font-weight:700;}
+.wm-breadcrumb a:hover{text-decoration:underline;}
+
+/* ── Main layout ── */
+.wm-main{display:flex;height:calc(100vh - 90px);position:relative;z-index:1;overflow:hidden;}
+
+/* ── Left sidebar ── */
+.wm-sidebar{
+  width:290px;flex:0 0 290px;
+  background:rgba(255,255,255,.05);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
+}
+.wm-sidebar::-webkit-scrollbar{width:5px;}
+.wm-sidebar::-webkit-scrollbar-track{background:transparent;}
+.wm-sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px;}
+
+.sidebar-section{padding:18px 18px 0;}
+.sidebar-section + .sidebar-section{border-top:1px solid var(--border);margin-top:16px;padding-top:16px;}
+.sidebar-section:last-child{padding-bottom:18px;}
+
+.s-label{font-size:10px;color:var(--muted2);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;}
+
+/* Drop zone in sidebar */
+.s-drop{
+  border:2px dashed var(--border);border-radius:14px;
+  padding:20px 14px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.02);transition:.2s;
+}
+.s-drop:hover,.s-drop.drag{border-color:var(--accent);background:rgba(79,124,255,.07);}
+.s-drop h3{font-size:14px;margin:0 0 5px;color:#fff;}
+.s-drop p{margin:0;color:var(--muted);font-size:12px;}
+.s-drop-icon{width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#ef4444,#f97316);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:950;color:#fff;margin:0 auto 10px;
+  box-shadow:0 10px 28px rgba(239,68,68,.3);
+  animation:floatPdf 3s ease-in-out infinite;}
+@keyframes floatPdf{0%{transform:translateY(0)}50%{transform:translateY(-7px)}100%{transform:translateY(0)}}
+
+/* Mode tabs */
+.s-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.s-tab{border:1px solid var(--border);background:var(--surface2);color:var(--muted);
+  border-radius:10px;padding:9px 4px;cursor:pointer;text-align:center;transition:.2s;font-size:11px;font-weight:700;}
+.s-tab:hover{border-color:rgba(96,165,250,.4);color:#fff;}
+.s-tab.active{background:rgba(37,99,235,.22);border-color:rgba(96,165,250,.6);color:#bfdbfe;}
+.s-tab-icon{display:block;font-size:16px;margin-bottom:3px;}
+
+/* Config panels */
+.s-config{display:none;}
+.s-config.visible{display:block;}
+
+/* Controls */
+.s-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
+.s-input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:1px solid var(--border);
+  color:#fff;border-radius:9px;padding:8px 10px;font-size:13px;}
+.s-input:focus{outline:none;border-color:var(--accent);}
+.s-input::placeholder{color:var(--muted2);}
+.s-select{background:rgba(255,255,255,.07);border:1px solid var(--border);color:#fff;
+  border-radius:9px;padding:8px 10px;font-size:12px;cursor:pointer;width:100%;margin-bottom:8px;}
+.s-select option{background:#181c27;}
+
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.sl-row label{font-size:11px;color:var(--muted);min-width:62px;}
+.sl-row input[type=range]{flex:1;accent-color:var(--accent);}
+.sl-val{font-size:11px;color:#60a5fa;min-width:34px;text-align:right;font-weight:700;}
+
+/* Stamp presets */
+.s-stamps{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.s-stamp{border:1px solid var(--border);border-radius:9px;padding:8px 5px;
+  cursor:pointer;text-align:center;background:var(--surface2);
+  font-size:10px;color:var(--muted);font-weight:700;transition:.2s;}
+.s-stamp:hover{border-color:rgba(96,165,250,.4);color:#fff;}
+.s-stamp.active{background:rgba(37,99,235,.2);border-color:#60a5fa;color:#bfdbfe;}
+.s-stamp span{display:block;font-size:15px;margin-bottom:3px;}
+
+/* Logo upload */
+.s-logo-drop{border:2px dashed rgba(124,58,237,.4);border-radius:12px;
+  padding:16px;text-align:center;cursor:pointer;
+  background:rgba(124,58,237,.06);transition:.2s;margin-bottom:8px;}
+.s-logo-drop:hover{border-color:#7c3aed;background:rgba(124,58,237,.12);}
+.s-logo-drop p{color:var(--muted);font-size:12px;margin:5px 0 0;}
+#logoPreviewWrap{display:none;margin-bottom:8px;text-align:center;}
+#logoPreviewImg{max-height:48px;border-radius:7px;border:1px solid var(--border);}
+
+/* Color swatch */
+.color-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.color-row label{font-size:11px;color:var(--muted);flex:1;}
+.c-swatch{width:30px;height:30px;border-radius:8px;border:2px solid var(--border);
+  cursor:pointer;overflow:hidden;position:relative;flex:0 0 30px;}
+.c-swatch input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;}
+.c-preview{width:100%;height:100%;border-radius:6px;pointer-events:none;}
+
+/* Buttons */
+.btn{border:1px solid var(--border);background:rgba(255,255,255,.07);
+  color:var(--text);padding:9px 14px;border-radius:10px;
+  cursor:pointer;font-weight:700;font-size:13px;transition:.22s;white-space:nowrap;}
+.btn:hover:not(:disabled){filter:brightness(1.15);}
+.btn:disabled{opacity:.38;cursor:not-allowed;}
+.btn.primary{background:linear-gradient(135deg,#2563eb,#7c3aed);border-color:transparent;color:#fff;
+  position:relative;overflow:hidden;}
+.btn.primary::before{content:"";position:absolute;top:0;left:-90%;width:55%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);
+  transform:skewX(-20deg);animation:btnShine 2.7s ease-in-out infinite;}
+@keyframes btnShine{0%{left:-90%}45%{left:130%}100%{left:130%}}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(37,99,235,.42);}
+.btn.green{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#bbf7d0;}
+.btn.danger{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.35);color:#fecaca;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* Hint pill */
+.s-hint{background:rgba(79,124,255,.1);border:1px solid rgba(79,124,255,.25);
+  border-radius:8px;padding:8px 10px;font-size:11px;color:#93c5fd;line-height:1.5;margin-bottom:10px;}
+
+/* Page nav pills */
+.page-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.page-nav button{background:rgba(255,255,255,.07);border:1px solid var(--border);
+  color:var(--muted);border-radius:7px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;}
+.page-nav button:hover{border-color:rgba(96,165,250,.4);color:#fff;}
+.page-nav button.active{background:rgba(37,99,235,.25);border-color:#60a5fa;color:#bfdbfe;}
+.page-nav span{font-size:11px;color:var(--muted);}
+
+/* ── Canvas editor ── */
+.wm-editor{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  background:#0b0d14;overflow:auto;position:relative;
+}
+.editor-toolbar{
+  width:100%;background:rgba(255,255,255,.04);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-size:12px;color:var(--muted);flex:0 0 auto;
+}
+.editor-toolbar strong{color:#fff;font-size:13px;}
+.toolbar-sep{width:1px;height:22px;background:var(--border);}
+.badge-info{background:rgba(79,124,255,.14);border:1px solid rgba(79,124,255,.28);
+  color:#93c5fd;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;}
+
+.canvas-wrap{
+  position:relative;margin:28px auto;
+  box-shadow:0 20px 70px rgba(0,0,0,.7);
+  flex:0 0 auto;
+}
+#pdfCanvas{display:block;background:#fff;}
+
+/* Draggable watermark overlay */
+#wmOverlay{
+  position:absolute;
+  cursor:grab;
+  user-select:none;
+  touch-action:none;
+  /* ring to show it's draggable */
+  outline:2px dashed rgba(96,165,250,.7);
+  outline-offset:4px;
+  border-radius:3px;
+  padding:2px 4px;
+  /* transition for non-drag moves */
+}
+#wmOverlay:active{cursor:grabbing;}
+#wmOverlay.hidden{display:none;}
+
+/* Rotate handle */
+#rotateHandle{
+  position:absolute;
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  border:2px solid #fff;
+  box-shadow:0 3px 12px rgba(37,99,235,.6);
+  cursor:grab;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#fff;
+  /* will be positioned by JS */
+}
+#rotateHandle:active{cursor:grabbing;}
+
+/* No-PDF placeholder */
+.editor-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:16px;color:var(--muted);text-align:center;padding:40px;
+}
+.editor-placeholder .big{font-size:52px;}
+.editor-placeholder h3{font-size:22px;color:#fff;font-weight:800;}
+.editor-placeholder p{font-size:14px;line-height:1.65;max-width:340px;}
+
+/* Toast */
+.toast{position:fixed;right:20px;bottom:20px;background:rgba(24,28,39,.96);
+  border:1px solid var(--border);padding:12px 18px;border-radius:12px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:999;}
+.toast.show{opacity:1;}
+
+/* Keyframes */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+
+/* Mobile */
+@media(max-width:760px){
+  .wm-sidebar{width:100%;flex:0 0 auto;height:auto;max-height:55vh;}
+  .wm-main{flex-direction:column;height:auto;}
+  .wm-editor{min-height:60vh;}
+}
+</style>
+</head>
+<body>
+<div class="wm-app">
+  <div class="wm-glow wm-glow-a"></div>
+  <div class="wm-glow wm-glow-b"></div>
+  <div class="wm-grid"></div>
+
+  <!-- HEADER -->
+  <header class="wm-header">
+    <div class="wm-brand">
+      <a href="index.html" class="wm-logo-btn">X</a>
+      <div class="wm-brand-text">
+        <strong>PDF Hub Centre</strong>
+        <span>Exchange 106 Internal Tools</span>
+      </div>
+    </div>
+    <div class="wm-breadcrumb">
+      <a href="index.html">PDF Hub Centre</a>
+      <span style="opacity:.4">›</span>
+      <span>Watermark PDF</span>
+    </div>
+    <div class="wm-pill"><span class="pill-dot"></span>One Mission One Team</div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="wm-main">
+
+    <!-- SIDEBAR -->
+    <aside class="wm-sidebar">
+
+      <!-- 1. File -->
+      <div class="sidebar-section">
+        <div class="s-label">1. Open PDF</div>
+        <div id="dropZone" class="s-drop" onclick="chooseFile()" ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+          <div class="s-drop-icon">PDF</div>
+          <h3>Drop PDF here</h3>
+          <p>Or click to browse</p>
+        </div>
+        <input id="fileInput" type="file" accept=".pdf,application/pdf" style="display:none" onchange="loadFile(this.files[0]);this.value=''">
+      </div>
+
+      <!-- 2. Watermark type -->
+      <div class="sidebar-section">
+        <div class="s-label">2. Watermark Type</div>
+        <div class="s-tabs">
+          <div class="s-tab active" onclick="setMode('text')" id="tabText"><span class="s-tab-icon">🔤</span>Text</div>
+          <div class="s-tab" onclick="setMode('stamp')" id="tabStamp"><span class="s-tab-icon">🔴</span>Stamp</div>
+          <div class="s-tab" onclick="setMode('logo')" id="tabLogo"><span class="s-tab-icon">🖼️</span>Logo</div>
+        </div>
+      </div>
+
+      <!-- 3. Config -->
+      <div class="sidebar-section">
+        <div class="s-label">3. Style</div>
+
+        <!-- TEXT -->
+        <div id="configText" class="s-config visible">
+          <div class="s-row">
+            <input id="wmText" class="s-input" placeholder="CONFIDENTIAL" value="CONFIDENTIAL" oninput="refreshOverlay()">
+            <select class="s-select" style="width:auto;flex:0 0 auto;padding:8px 6px;" onchange="if(this.value){document.getElementById('wmText').value=this.value;refreshOverlay();}this.value=''">
+              <option value="">↓</option>
+              <option value="CONFIDENTIAL">CONFIDENTIAL</option>
+              <option value="INTERNAL USE ONLY">INTERNAL USE ONLY</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="DO NOT DISTRIBUTE">DO NOT DISTRIBUTE</option>
+              <option value="APPROVED">APPROVED</option>
+              <option value="FOR REVIEW">FOR REVIEW</option>
+            </select>
+          </div>
+          <div class="sl-row">
+            <label>Opacity</label>
+            <input type="range" min="5" max="90" value="25" id="wmOpacity" oninput="sv(this,'valWmOp','%');refreshOverlay()">
+            <span class="sl-val" id="valWmOp">25%</span>
+          </div>
+          <div class="sl-row">
+            <label>Font size</label>
+            <input type="range" min="12" max="120" value="60" id="wmFontSize" oninput="sv(this,'valWmFs','pt');refreshOverlay()">
+            <span class="sl-val" id="valWmFs">60pt</span>
+          </div>
+          <div class="color-row">
+            <label>Colour</label>
+            <div class="c-swatch" onclick="document.getElementById('wmColor').click()">
+              <div class="c-preview" id="wmColorPreview" style="background:#ef4444;"></div>
+              <input type="color" id="wmColor" value="#ef4444" oninput="document.getElementById('wmColorPreview').style.background=this.value;refreshOverlay()">
+            </div>
+          </div>
+        </div>
+
+        <!-- STAMP -->
+        <div id="configStamp" class="s-config">
+          <div class="s-stamps">
+            <div class="s-stamp active" onclick="selectStamp(this,'CONFIDENTIAL','#ef4444')"><span>🔴</span>CONFIDENTIAL</div>
+            <div class="s-stamp" onclick="selectStamp(this,'APPROVED','#22c55e')"><span>✅</span>APPROVED</div>
+            <div class="s-stamp" onclick="selectStamp(this,'DRAFT','#f97316')"><span>🟠</span>DRAFT</div>
+            <div class="s-stamp" onclick="selectStamp(this,'INTERNAL','#3b82f6')"><span>🔵</span>INTERNAL</div>
+            <div class="s-stamp" onclick="selectStamp(this,'REJECTED','#dc2626')"><span>❌</span>REJECTED</div>
+            <div class="s-stamp" onclick="selectStamp(this,'REVIEWED','#8b5cf6')"><span>🟣</span>REVIEWED</div>
+          </div>
+          <div class="sl-row">
+            <label>Opacity</label>
+            <input type="range" min="10" max="100" value="65" id="stOpacity" oninput="sv(this,'valStOp','%');refreshOverlay()">
+            <span class="sl-val" id="valStOp">65%</span>
+          </div>
+          <div class="sl-row">
+            <label>Size</label>
+            <input type="range" min="16" max="100" value="48" id="stSize" oninput="sv(this,'valStSz','pt');refreshOverlay()">
+            <span class="sl-val" id="valStSz">48pt</span>
+          </div>
+        </div>
+
+        <!-- LOGO -->
+        <div id="configLogo" class="s-config">
+          <div class="s-logo-drop" onclick="document.getElementById('logoInput').click()">
+            <span style="font-size:24px;">🖼️</span>
+            <p>Click — PNG, JPG or SVG</p>
+          </div>
+          <input id="logoInput" type="file" accept="image/*" style="display:none" onchange="loadLogo(this.files[0]);this.value=''">
+          <div id="logoPreviewWrap"><img id="logoPreviewImg" src="" alt=""><p style="font-size:11px;color:var(--muted);">Logo loaded ✓</p></div>
+          <div class="sl-row">
+            <label>Opacity</label>
+            <input type="range" min="5" max="100" value="45" id="lgOpacity" oninput="sv(this,'valLgOp','%');refreshOverlay()">
+            <span class="sl-val" id="valLgOp">45%</span>
+          </div>
+          <div class="sl-row">
+            <label>Scale</label>
+            <input type="range" min="5" max="80" value="22" id="lgScale" oninput="sv(this,'valLgSc','%');refreshOverlay()">
+            <span class="sl-val" id="valLgSc">22%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Page nav -->
+      <div class="sidebar-section" id="pageNavSection" style="display:none;">
+        <div class="s-label">Page</div>
+        <div class="page-nav" id="pageNav"></div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;">Position is applied to all pages when exported.</p>
+      </div>
+
+      <!-- 5. Export -->
+      <div class="sidebar-section">
+        <div class="s-label">4. Export</div>
+        <div class="s-hint">Drag the watermark on the page to position it. Drag the <b>blue handle</b> to rotate.</div>
+        <div class="btn-row">
+          <button class="btn primary" id="exportBtn" onclick="exportPdf()" disabled>Export PDF</button>
+          <button class="btn danger" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- EDITOR CANVAS AREA -->
+    <div class="wm-editor" id="editorArea">
+      <div class="editor-toolbar" id="editorToolbar" style="display:none;">
+        <strong id="tbFilename">—</strong>
+        <div class="toolbar-sep"></div>
+        <span id="tbPageInfo">Page 1 / 1</span>
+        <div class="toolbar-sep"></div>
+        <span class="badge-info">Drag watermark to position · Drag blue handle to rotate</span>
+        <div style="flex:1;"></div>
+        <span id="tbPosition" style="font-family:monospace;font-size:11px;color:#60a5fa;"></span>
+      </div>
+
+      <div id="editorPlaceholder" class="editor-placeholder">
+        <div class="big">💧</div>
+        <h3>Watermark PDF</h3>
+        <p>Open a PDF from the sidebar to start. You'll be able to drag your watermark anywhere on the page before exporting.</p>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap" style="display:none;">
+        <canvas id="pdfCanvas"></canvas>
+        <!-- watermark overlay — draggable -->
+        <div id="wmOverlay" class="hidden"></div>
+        <!-- rotate handle — attached to overlay, positioned by JS -->
+        <div id="rotateHandle">↻</div>
+      </div>
+    </div>
+
+  </div><!-- /wm-main -->
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+/* ─── State ─────────────────────────────────── */
+let srcBytes=null, pdfDoc=null, pageCount=0, currentPage=1;
+let displayScale=1;           // canvas px / PDF pt
+let currentMode='text';
+let stampText='CONFIDENTIAL', stampColor='#ef4444';
+let logoDataUrl=null, logoImg=null;
+// Normalised position: 0-1 fraction of PDF page dimensions (persists across page switches)
+let watermarkNorm={x:0.5, y:0.5};
+// Canvas-px position derived on each render — used by drag/overlay code
+let watermarkPos={x:0, y:0};
+let watermarkRot=-45;         // degrees — NEVER reset after initial load
+let rotationInitialised=false;// becomes true after first PDF load; prevents renderPage reset
+let pdfPageW=0, pdfPageH=0;  // PDF points
+
+/* ─── Tiny helpers ──────────────────────────── */
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function sv(el,valId,suffix){document.getElementById(valId).textContent=el.value+suffix;}
+function rad(d){return d*Math.PI/180;}
+function deg(r){return r*180/Math.PI;}
+
+/* ─── Mode & stamp ──────────────────────────── */
+function setMode(m){
+  currentMode=m;
+  ['text','stamp','logo'].forEach(k=>{
+    document.getElementById('config'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('visible',k===m);
+    document.getElementById('tab'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active',k===m);
+  });
+  // Only set a sensible default rotation if we haven't placed a watermark yet
+  if(!rotationInitialised){
+    watermarkRot = m==='stamp' ? -15 : m==='text' ? -45 : 0;
+  }
+  refreshOverlay();
+}
+function selectStamp(el,text,color){
+  document.querySelectorAll('.s-stamp').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');stampText=text;stampColor=color;refreshOverlay();
+}
+
+/* ─── File loading ──────────────────────────── */
+function chooseFile(){document.getElementById('fileInput').click();}
+function onDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('drag');}
+function onDragLeave(){document.getElementById('dropZone').classList.remove('drag');}
+function onDrop(e){e.preventDefault();onDragLeave();loadFile(e.dataTransfer.files[0]);}
+
+async function loadFile(file){
+  if(!file) return;
+  if(!(file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf'))){toast('Please choose a PDF file');return;}
+  try{
+    toast('Loading…');
+    const buf=await file.arrayBuffer();
+    srcBytes=new Uint8Array(buf);
+    _renderGen=0; _renderTask=null;
+    pdfDoc=await pdfjsLib.getDocument({data:srcBytes.slice().buffer}).promise;
+    pageCount=pdfDoc.numPages;
+    currentPage=1;
+    document.getElementById('dropZone').innerHTML=`<div class="s-drop-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);animation:none;">✓</div><h3>${file.name}</h3><p>${(file.size/1024).toFixed(0)} KB — click to change</p>`;
+    document.getElementById('exportBtn').disabled=false;
+    document.getElementById('pageNavSection').style.display= pageCount>1 ? 'block':'none';
+    buildPageNav();
+    await renderPage(currentPage);
+    toast('PDF loaded');
+  }catch(e){console.error(e);alert('Load error: '+e.message);}
+}
+
+function buildPageNav(){
+  const nav=document.getElementById('pageNav');nav.innerHTML='';
+  for(let i=1;i<=Math.min(pageCount,20);i++){
+    const b=document.createElement('button');
+    b.textContent=i;if(i===currentPage)b.classList.add('active');
+    b.onclick=()=>goPage(i);nav.appendChild(b);
+  }
+  if(pageCount>20){const s=document.createElement('span');s.textContent='…+more';nav.appendChild(s);}
+}
+let _goPageTimer=null;
+async function goPage(n){
+  currentPage=n;
+  document.querySelectorAll('.page-nav button').forEach((b,i)=>b.classList.toggle('active',i+1===n));
+  // Debounce: if user clicks several pages quickly, only render the last one
+  clearTimeout(_goPageTimer);
+  _goPageTimer=setTimeout(()=>renderPage(n),60);
+}
+
+/* ─── Render page ───────────────────────────── */
+let _renderGen=0;   // incremented on every render request; stale renders self-abort
+let _renderTask=null;
+
+async function renderPage(n){
+  // Stamp a generation token. Any older async call that resumes after this point
+  // will see its token no longer matches and will bail before touching the canvas.
+  const gen = ++_renderGen;
+
+  // Cancel whatever PDF.js task is currently painting
+  if(_renderTask){
+    try{ _renderTask.cancel(); }catch(_){}
+    _renderTask=null;
+  }
+
+  const page = await pdfDoc.getPage(n);
+  if(gen !== _renderGen) return; // a newer render started while we awaited getPage
+
+  const vp0=page.getViewport({scale:1});
+  pdfPageW=vp0.width; pdfPageH=vp0.height;
+
+  const editorW=document.getElementById('editorArea').clientWidth-80;
+  const editorH=document.getElementById('editorArea').clientHeight-120;
+  displayScale=Math.min(editorW/vp0.width, editorH/vp0.height, 2.2);
+
+  const vp=page.getViewport({scale:displayScale});
+  const canvas=document.getElementById('pdfCanvas');
+  canvas.width=Math.ceil(vp.width);
+  canvas.height=Math.ceil(vp.height);
+
+  if(gen !== _renderGen) return; // check again right before we touch the canvas
+
+  _renderTask=page.render({canvasContext:canvas.getContext('2d'),viewport:vp});
+  try{
+    await _renderTask.promise;
+  }catch(e){
+    if(e?.name==='RenderingCancelledException') return;
+    throw e;
+  }finally{
+    if(gen===_renderGen) _renderTask=null;
+  }
+
+  if(gen !== _renderGen) return; // don't update UI if we've been superseded
+
+  // Show editor
+  document.getElementById('editorPlaceholder').style.display='none';
+  document.getElementById('canvasWrap').style.display='block';
+  document.getElementById('editorToolbar').style.display='flex';
+  document.getElementById('tbPageInfo').textContent='Page '+n+' / '+pageCount;
+  document.getElementById('tbFilename').textContent=
+    document.querySelector('#dropZone h3')?.textContent||'PDF';
+
+  // On first render only: set default rotation based on mode; keep for all subsequent renders
+  if(!rotationInitialised){
+    watermarkRot = currentMode==='stamp' ? -15 : currentMode==='text' ? -45 : 0;
+    rotationInitialised=true;
+  }
+
+  // Derive canvas-px position from normalised coords (stable across different page sizes)
+  normToCanvas();
+  refreshOverlay();
+  updatePositionDisplay();
+}
+
+/* Convert normalised 0-1 to canvas px */
+function normToCanvas(){
+  const c=document.getElementById('pdfCanvas');
+  watermarkPos={x:watermarkNorm.x*c.width, y:watermarkNorm.y*c.height};
+}
+/* Convert canvas px to normalised 0-1 (call after any drag) */
+function canvasToNorm(){
+  const c=document.getElementById('pdfCanvas');
+  if(!c.width) return;
+  watermarkNorm={x:watermarkPos.x/c.width, y:watermarkPos.y/c.height};
+}
+
+/* ─── Watermark overlay rendering ──────────── */
+function refreshOverlay(){
+  if(!pdfDoc) return;
+  const ov=document.getElementById('wmOverlay');
+  const rh=document.getElementById('rotateHandle');
+  const canvas=document.getElementById('pdfCanvas');
+  const wrap=document.getElementById('canvasWrap');
+
+  if(currentMode==='logo'&&!logoDataUrl){ov.classList.add('hidden');rh.style.display='none';return;}
+
+  ov.classList.remove('hidden');
+  ov.style.transform=`translate(-50%,-50%) rotate(${watermarkRot}deg)`;
+  ov.style.left=watermarkPos.x+'px';
+  ov.style.top=watermarkPos.y+'px';
+
+  if(currentMode==='text'){
+    const text=document.getElementById('wmText').value||'CONFIDENTIAL';
+    const opacity=parseInt(document.getElementById('wmOpacity').value)/100;
+    const fontSize=parseInt(document.getElementById('wmFontSize').value)*displayScale/1.33;
+    const color=document.getElementById('wmColor').value;
+    ov.style.background='none';
+    ov.style.border='none';
+    ov.style.outline='2px dashed rgba(96,165,250,.6)';
+    ov.style.padding='3px 6px';
+    ov.innerHTML=`<span style="font-family:'Segoe UI',Arial,sans-serif;font-weight:900;font-size:${fontSize}px;color:${color};opacity:${opacity};letter-spacing:2px;white-space:nowrap;">${text}</span>`;
+
+  } else if(currentMode==='stamp'){
+    const opacity=parseInt(document.getElementById('stOpacity').value)/100;
+    const fontSize=parseInt(document.getElementById('stSize').value)*displayScale/1.33;
+    const pad=fontSize*0.45;
+    ov.style.padding=`${pad*0.55}px ${pad}px`;
+    ov.style.outline='none';
+    ov.style.border=`${Math.max(2,fontSize*0.07)}px solid ${stampColor}`;
+    ov.style.borderRadius='4px';
+    ov.style.background='transparent';
+    ov.innerHTML=`<span style="font-family:'Segoe UI',Arial,sans-serif;font-weight:900;font-size:${fontSize}px;color:${stampColor};opacity:${opacity};letter-spacing:2px;white-space:nowrap;">${stampText}</span>`;
+    ov.style.opacity=opacity;
+
+  } else if(currentMode==='logo'&&logoImg){
+    const scale=parseInt(document.getElementById('lgScale').value)/100;
+    const opacity=parseInt(document.getElementById('lgOpacity').value)/100;
+    const maxW=canvas.width*scale;
+    ov.style.padding='0';ov.style.border='none';ov.style.outline='2px dashed rgba(96,165,250,.6)';
+    ov.innerHTML=`<img src="${logoDataUrl}" style="width:${maxW}px;opacity:${opacity};display:block;pointer-events:none;">`;
+  }
+
+  // Position rotate handle at a fixed 36px offset in the overlay's local "up" direction
+  // so it follows the rotation correctly without relying on getBoundingClientRect timing.
+  const handleOffset = 36;
+  const rotRad = rad(watermarkRot);
+  rh.style.display='flex';
+  rh.style.left=(watermarkPos.x + handleOffset * Math.sin(rotRad))+'px';
+  rh.style.top=(watermarkPos.y - handleOffset * Math.cos(rotRad))+'px';
+  rh.style.transform='translate(-50%,-50%)';
+
+  updatePositionDisplay();
+}
+
+function updatePositionDisplay(){
+  const canvas=document.getElementById('pdfCanvas');
+  if(!canvas.width) return;
+  // Convert canvas px position to PDF points percentage
+  const pctX=Math.round(watermarkPos.x/canvas.width*100);
+  const pctY=Math.round((1-watermarkPos.y/canvas.height)*100);
+  document.getElementById('tbPosition').textContent=
+    `x:${pctX}% y:${pctY}% rot:${Math.round(watermarkRot)}°`;
+}
+
+/* ─── Drag watermark ────────────────────────── */
+(function(){
+  const ov=document.getElementById('wmOverlay');
+  const rh=document.getElementById('rotateHandle');
+  let dragging=false, rotating=false;
+  let startMx=0, startMy=0, startX=0, startY=0, startRot=0;
+
+  function getCanvasRect(){return document.getElementById('pdfCanvas').getBoundingClientRect();}
+
+  // — Move —
+  ov.addEventListener('mousedown',e=>{
+    if(e.target===rh) return;
+    dragging=true;
+    startMx=e.clientX;startMy=e.clientY;
+    startX=watermarkPos.x;startY=watermarkPos.y;
+    e.preventDefault();
+  });
+  ov.addEventListener('touchstart',e=>{
+    if(e.target===rh) return;
+    const t=e.touches[0];
+    dragging=true;
+    startMx=t.clientX;startMy=t.clientY;
+    startX=watermarkPos.x;startY=watermarkPos.y;
+    e.preventDefault();
+  },{passive:false});
+
+  // — Rotate —
+  rh.addEventListener('mousedown',e=>{
+    rotating=true;
+    const r=getCanvasRect();
+    const cx=r.left+watermarkPos.x, cy=r.top+watermarkPos.y;
+    startRot=watermarkRot - deg(Math.atan2(e.clientY-cy,e.clientX-cx));
+    e.preventDefault();e.stopPropagation();
+  });
+  rh.addEventListener('touchstart',e=>{
+    rotating=true;
+    const t=e.touches[0];
+    const r=getCanvasRect();
+    const cx=r.left+watermarkPos.x, cy=r.top+watermarkPos.y;
+    startRot=watermarkRot - deg(Math.atan2(t.clientY-cy,t.clientX-cx));
+    e.preventDefault();e.stopPropagation();
+  },{passive:false});
+
+  function onMove(mx,my){
+    const canvas=document.getElementById('pdfCanvas');
+    if(dragging){
+      const dx=mx-startMx, dy=my-startMy;
+      watermarkPos.x=Math.max(0,Math.min(canvas.width, startX+dx));
+      watermarkPos.y=Math.max(0,Math.min(canvas.height,startY+dy));
+      canvasToNorm(); // keep normalised coords in sync
+      refreshOverlay();
+    }
+    if(rotating){
+      const r=getCanvasRect();
+      const cx=r.left+watermarkPos.x, cy=r.top+watermarkPos.y;
+      watermarkRot=startRot + deg(Math.atan2(my-cy,mx-cx));
+      refreshOverlay();
+    }
+  }
+
+  document.addEventListener('mousemove',e=>{if(dragging||rotating)onMove(e.clientX,e.clientY);});
+  document.addEventListener('touchmove',e=>{if(dragging||rotating){const t=e.touches[0];onMove(t.clientX,t.clientY);}},{passive:false});
+  document.addEventListener('mouseup',()=>{dragging=false;rotating=false;});
+  document.addEventListener('touchend',()=>{dragging=false;rotating=false;});
+})();
+
+/* ─── Logo loading ──────────────────────────── */
+function loadLogo(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    logoDataUrl=e.target.result;
+    logoImg=new Image();
+    logoImg.onload=()=>{
+      document.getElementById('logoPreviewImg').src=logoDataUrl;
+      document.getElementById('logoPreviewWrap').style.display='block';
+      if(pdfDoc) refreshOverlay();
+      toast('Logo loaded ✓');
+    };
+    logoImg.src=logoDataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ─── Export / burn watermark into PDF ─────── */
+async function exportPdf(){
+  if(!srcBytes){toast('Open a PDF first');return;}
+  if(currentMode==='logo'&&!logoDataUrl){toast('Upload a logo first');return;}
+  try{
+    toast('Exporting…');
+    const {PDFDocument,rgb,degrees}=PDFLib;
+    const doc=await PDFDocument.load(srcBytes.slice(),{ignoreEncryption:true});
+    const pages=doc.getPages();
+    const canvas=document.getElementById('pdfCanvas');
+
+    // watermarkNorm is 0-1 fraction of the preview page's PDF dimensions.
+    // For each page, multiply by that page's actual PDF size so position is visually consistent
+    // regardless of page size variation.
+    // PDF coords: origin bottom-left; canvas origin top-left → flip Y
+    const normX = watermarkNorm.x;
+    const normY = 1 - watermarkNorm.y;   // flip: canvas Y=0 is top, PDF Y=0 is bottom
+    const rotation = watermarkRot;
+
+    for(const page of pages){
+      const {width,height}=page.getSize();
+      // Apply normalised position to this page's actual PDF dimensions
+      const cx = normX * width;
+      const cy = normY * height;
+
+      if(currentMode==='text'){
+        const {StandardFonts}=PDFLib;
+        const font=await doc.embedFont(StandardFonts.HelveticaBold);
+        const text=document.getElementById('wmText').value||'CONFIDENTIAL';
+        const opacity=parseInt(document.getElementById('wmOpacity').value)/100;
+        const fontSize=parseInt(document.getElementById('wmFontSize').value);
+        const hex=document.getElementById('wmColor').value.replace('#','');
+        const r=parseInt(hex.slice(0,2),16)/255;
+        const g=parseInt(hex.slice(2,4),16)/255;
+        const b=parseInt(hex.slice(4,6),16)/255;
+        const tw=font.widthOfTextAtSize(text,fontSize);
+        const th=fontSize;
+        const rr=rad(rotation);
+        // anchor at (cx,cy) = visual centre
+        const startX=cx-(tw/2)*Math.cos(rr)+(th/2)*Math.sin(rr);
+        const startY=cy-(tw/2)*Math.sin(rr)-(th/2)*Math.cos(rr);
+        page.drawText(text,{x:startX,y:startY,size:fontSize,font,color:rgb(r,g,b),opacity,rotate:degrees(rotation)});
+
+      } else if(currentMode==='stamp'){
+        const {StandardFonts}=PDFLib;
+        const font=await doc.embedFont(StandardFonts.HelveticaBold);
+        const opacity=parseInt(document.getElementById('stOpacity').value)/100;
+        const fontSize=parseInt(document.getElementById('stSize').value);
+        const hex=stampColor.replace('#','');
+        const r=parseInt(hex.slice(0,2),16)/255;
+        const g=parseInt(hex.slice(2,4),16)/255;
+        const b=parseInt(hex.slice(4,6),16)/255;
+        const tw=font.widthOfTextAtSize(stampText,fontSize);
+        const pad=fontSize*0.45;
+        const boxW=tw+pad*2, boxH=fontSize+pad*1.1;
+        const rr=rad(rotation);
+        const startX=cx-(tw/2)*Math.cos(rr)+(fontSize/2)*Math.sin(rr);
+        const startY=cy-(tw/2)*Math.sin(rr)-(fontSize/2)*Math.cos(rr);
+        const bx=startX-pad*Math.cos(rr)+(pad*0.55)*Math.sin(rr);
+        const by=startY-pad*Math.sin(rr)-(pad*0.55)*Math.cos(rr);
+        page.drawRectangle({x:bx,y:by,width:boxW,height:boxH,
+          borderColor:rgb(r,g,b),borderWidth:Math.max(1.5,fontSize*0.07),
+          borderOpacity:opacity,opacity:0,rotate:degrees(rotation)});
+        page.drawText(stampText,{x:startX,y:startY,size:fontSize,font,
+          color:rgb(r,g,b),opacity,rotate:degrees(rotation)});
+
+      } else if(currentMode==='logo'&&logoDataUrl){
+        const opacity=parseInt(document.getElementById('lgOpacity').value)/100;
+        const scalePct=parseInt(document.getElementById('lgScale').value)/100;
+        const imgW=width*scalePct;
+        const imgH=imgW*(logoImg.naturalHeight/logoImg.naturalWidth);
+        const bytes=await (await fetch(logoDataUrl)).arrayBuffer();
+        let imgEmbed;
+        try{imgEmbed=await doc.embedPng(new Uint8Array(bytes));}
+        catch(e){try{imgEmbed=await doc.embedJpg(new Uint8Array(bytes));}catch(e2){
+          const c=document.createElement('canvas');const im=new Image();im.src=logoDataUrl;
+          await new Promise(r=>{im.onload=r;});c.width=im.naturalWidth;c.height=im.naturalHeight;
+          c.getContext('2d').drawImage(im,0,0);
+          const pb=Uint8Array.from(atob(c.toDataURL('image/png').split(',')[1]),c2=>c2.charCodeAt(0));
+          imgEmbed=await doc.embedPng(pb);
+        }}
+        // Place image centred on cx,cy (PDF coords, no rotation for logo)
+        page.drawImage(imgEmbed,{x:cx-imgW/2,y:cy-imgH/2,width:imgW,height:imgH,opacity});
+      }
+    }
+
+    const outBytes=await doc.save();
+    const blob=new Blob([outBytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='watermarked.pdf';a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast('PDF downloaded ✓');
+  }catch(e){console.error(e);alert('Export error: '+(e.stack||e.message));}
+}
+
+/* ─── Clear ─────────────────────────────────── */
+function clearAll(){
+  srcBytes=null;pdfDoc=null;pageCount=0;currentPage=1;logoDataUrl=null;logoImg=null;
+  _renderGen=0; if(_renderTask){try{_renderTask.cancel();}catch(_){}_renderTask=null;}
+  watermarkNorm={x:0.5,y:0.5};
+  watermarkRot=-45;
+  rotationInitialised=false;
+  document.getElementById('exportBtn').disabled=true;
+  document.getElementById('pageNavSection').style.display='none';
+  document.getElementById('canvasWrap').style.display='none';
+  document.getElementById('editorPlaceholder').style.display='flex';
+  document.getElementById('editorToolbar').style.display='none';
+  document.getElementById('wmOverlay').classList.add('hidden');
+  document.getElementById('rotateHandle').style.display='none';
+  document.getElementById('logoPreviewWrap').style.display='none';
+  document.getElementById('dropZone').innerHTML=`<div class="s-drop-icon">PDF</div><h3>Drop PDF here</h3><p>Or click to browse</p>`;
+  toast('Cleared');
+}
+
+/* ─── Global drag-onto-page drop ───────────── */
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer?.files?.[0];
+  if(f&&(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')))loadFile(f);
+});
+</script>
+</body>
+</html>
