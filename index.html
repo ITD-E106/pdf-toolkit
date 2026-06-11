@@ -25,7 +25,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
   background-size:48px 48px;mask-image:radial-gradient(circle at center,black 0%,transparent 72%);z-index:0}
 
 /* HERO */
-.x106-hero{min-height:100vh;padding:34px 7% 40px;position:relative;z-index:1;background:transparent!important}
+.x106-hero{min-height:100vh;padding:34px 7% 60px;position:relative;z-index:1;background:transparent!important}
 .x106-hero::after{content:"";position:absolute;left:0;right:0;bottom:-120px;height:240px;
   background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(7,18,44,.55) 45%,rgba(7,18,44,.95) 100%);
   pointer-events:none;z-index:-1}
@@ -51,146 +51,145 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
   letter-spacing:-4px;font-weight:950;text-shadow:0 18px 50px rgba(0,0,0,.45)}
 .x106-left p{margin-top:30px;max-width:720px;color:#dbeafe!important;font-size:22px;line-height:1.75}
 
-/* UPLOAD CARD */
-.x106-upload-card{border-radius:36px;padding:50px;text-align:center;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+/* SLIDER */
+.hero-right-section{animation:fadeRight .9s ease both}
+.slider-stage{position:relative;width:100%;max-width:420px;margin:0 auto}
+.slider-track{position:relative;height:340px}
+.tool-card{position:absolute;inset:0;border-radius:28px;padding:32px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);
   backdrop-filter:blur(28px);box-shadow:0 38px 95px rgba(0,0,0,.42);
-  position:relative;overflow:hidden;animation:fadeRight .9s ease both}
-.x106-upload-card::before{content:"";position:absolute;inset:-2px;
-  background:radial-gradient(circle at 50% 0%,rgba(96,165,250,.26),transparent 45%);pointer-events:none}
-.pdf-orbit{position:relative;width:240px;height:220px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center}
-.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(96,165,250,.22)}
-.ring-one{width:188px;height:70px;transform:rotate(-10deg);animation:ringPulse 3.2s ease-in-out infinite}
-.ring-two{width:220px;height:90px;transform:rotate(8deg);animation:ringPulse 3.2s ease-in-out infinite reverse}
-.x106-file-icon{width:128px;height:154px;border-radius:24px;background:linear-gradient(135deg,#ef4444,#f97316);
-  display:flex;align-items:center;justify-content:center;color:#fff!important;font-size:32px;font-weight:950;
-  box-shadow:0 25px 60px rgba(239,68,68,.34);animation:floatPdf 3s ease-in-out infinite;position:relative;z-index:2;overflow:hidden}
-.x106-file-icon span{position:relative;z-index:2}
-.x106-file-icon::after{content:"";position:absolute;top:0;left:-85%;width:45%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);
-  transform:skewX(-18deg);animation:fileShineInside 3.4s ease-in-out infinite;z-index:1;pointer-events:none}
-.orb{position:absolute;border-radius:50%;opacity:.9;animation:orbitMove 5s linear infinite}
-.orb-one{width:11px;height:11px;background:#60a5fa;left:28px;top:68px}
-.orb-two{width:9px;height:9px;background:#a78bfa;right:32px;top:92px;animation-delay:-1.2s}
-.orb-three{width:8px;height:8px;background:#fb7185;right:52px;top:44px;animation-delay:-2.4s}
-.x106-upload-card h2{color:#fff!important;font-size:34px;margin:0 0 14px;font-weight:950;position:relative;z-index:2}
-.x106-upload-card p{color:#dbeafe!important;font-size:18px;line-height:1.65;position:relative;z-index:2}
-.x106-upload-btn{margin-top:24px;width:100%;min-height:58px;display:inline-flex;align-items:center;
-  justify-content:center;white-space:nowrap;line-height:1;border-radius:16px;text-decoration:none!important;
-  font-weight:950;letter-spacing:.2px;background:linear-gradient(135deg,#2563eb,#7c3aed);
-  color:#fff!important;position:relative;z-index:2;overflow:hidden;transition:.28s ease}
-.x106-upload-btn::before{content:"";position:absolute;top:0;left:-90%;width:55%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
-  transform:skewX(-20deg);animation:buttonShine 2.7s ease-in-out infinite}
-.x106-upload-btn:hover{transform:translateY(-5px) scale(1.02);box-shadow:0 20px 48px rgba(37,99,235,.42)}
-.x106-upload-card small{display:block;margin-top:20px;color:#a9b7d0!important;position:relative;z-index:2}
+  display:flex;flex-direction:column;justify-content:space-between;
+  transition:all .5s cubic-bezier(.4,0,.2,1);cursor:pointer;overflow:hidden}
+.tool-card.active{opacity:1;transform:translateX(0) scale(1);z-index:3;pointer-events:auto}
+.tool-card.next{opacity:.5;transform:translateX(18px) scale(.93);z-index:2;pointer-events:none}
+.tool-card.prev{opacity:.5;transform:translateX(-18px) scale(.93);z-index:2;pointer-events:none}
+.tool-card.hidden{opacity:0;transform:translateX(0) scale(.85);z-index:1;pointer-events:none}
+.tool-card h3{color:#fff!important;font-size:24px;font-weight:950;margin:16px 0 8px}
+.tool-card p{color:#cbd5e1!important;font-size:15px;line-height:1.6;margin:0;flex:1}
+.launch-btn{display:inline-flex;align-items:center;justify-content:center;margin-top:20px;
+  padding:11px 24px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:#fff!important;text-decoration:none!important;font-weight:800;font-size:14px;
+  transition:.2s ease;position:relative;overflow:hidden;z-index:10}
+.launch-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(37,99,235,.4)}
+.slider-nav{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:.2s}
+.nav-dot.active{background:#60a5fa;box-shadow:0 0 10px rgba(96,165,250,.6)}
 
-/* TOOLS */
-.x106-tools{margin-top:-1px;padding:70px 7% 130px;position:relative;z-index:1;
-  background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(7,18,44,.55) 18%,rgba(7,18,44,.85) 45%,rgba(2,6,23,1) 100%);
-  color:#fff!important}
-.x106-section-title{text-align:center;margin-bottom:48px;animation:softFadeUp .8s ease both}
-.x106-section-title h2{color:#fff!important;margin:0;font-size:52px;font-weight:950;letter-spacing:-1.5px}
-.x106-section-title p{color:#a9b7d0!important;font-size:18px}
+/* TOOL ICON inside slider cards */
+.tool-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.25)}
 
-.x106-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
-.x106-card{background:rgba(255,255,255,.075);border-radius:28px;padding:32px;
-  text-decoration:none!important;color:#fff!important;border:1px solid rgba(255,255,255,.13);
-  box-shadow:0 22px 55px rgba(0,0,0,.26);transition:.28s ease;min-height:245px;
-  position:relative;overflow:hidden;backdrop-filter:blur(18px);animation:softFadeUp .75s ease both}
-.x106-card::before{content:"";position:absolute;inset:0;
-  background:radial-gradient(circle at top left,rgba(96,165,250,.18),transparent 40%);opacity:0;transition:.28s ease}
-.x106-card:nth-child(1){animation-delay:.05s}
-.x106-card:nth-child(2){animation-delay:.12s}
-.x106-card:nth-child(3){animation-delay:.19s}
-.x106-card:nth-child(4){animation-delay:.26s}
-.x106-card:hover{transform:translateY(-10px);box-shadow:0 30px 80px rgba(37,99,235,.22);border-color:rgba(96,165,250,.45)}
-.x106-card:hover::before{opacity:1}
+/* card accent colours */
+.card-edit{border-color:rgba(16,185,129,.3)}
+.card-edit .tool-icon{background:rgba(16,185,129,.18)}
+.card-merge{border-color:rgba(37,99,235,.3)}
+.card-merge .tool-icon{background:rgba(37,99,235,.18)}
+.card-split{border-color:rgba(236,72,153,.3)}
+.card-split .tool-icon{background:rgba(236,72,153,.18)}
+.card-watermark{border-color:rgba(244,63,94,.3)}
+.card-watermark .tool-icon{background:rgba(244,63,94,.18)}
 
+/* ICON ELEMENTS */
+.icon-element{position:absolute}
+/* edit */
+.edit-pencil{width:5px;height:18px;background:linear-gradient(180deg,#fde68a,#f59e0b);border-radius:2px 2px 0 0;
+  bottom:8px;right:8px;transform-origin:bottom center;animation:pencilWrite 1.8s ease-in-out infinite}
+.edit-pencil::before{content:"";position:absolute;top:-4px;left:0;right:0;height:5px;background:#fca5a5;border-radius:2px 2px 0 0}
+.edit-pencil::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
+  border-left:2.5px solid transparent;border-right:2.5px solid transparent;border-top:5px solid #f59e0b}
+.edit-spark{width:5px;height:5px;border-radius:50%;background:#34d399;bottom:9px;right:7px;opacity:0;animation:sparkPop 1.8s ease-in-out infinite}
+/* merge */
+.file-a{width:19px;height:25px;border-radius:5px;background:linear-gradient(135deg,#60a5fa,#2563eb);left:10px;top:15px;animation:mergeA 2.2s ease-in-out infinite}
+.file-b{width:19px;height:25px;border-radius:5px;background:linear-gradient(135deg,#60a5fa,#2563eb);left:26px;top:15px;animation:mergeC 2.2s ease-in-out infinite}
+/* split */
+.cut-line{width:38px;height:3px;background:#f9a8d4;transform:rotate(-35deg);top:25px;left:8px;animation:cutLine 2.4s ease-in-out infinite}
+.blade{width:22px;height:10px;border-radius:8px;background:#ec4899}
+.blade-left{left:8px;top:15px;transform:rotate(-35deg);animation:bladeLeft 2.4s ease-in-out infinite}
+.blade-right{right:8px;bottom:15px;transform:rotate(-35deg);animation:bladeRight 2.4s ease-in-out infinite}
+/* stamp */
+.stamp-base{width:34px;height:12px;border-radius:8px;background:#fb7185;bottom:12px;left:10px;animation:stampBase 2.2s ease-in-out infinite}
+.stamp-handle{width:18px;height:26px;border-radius:8px 8px 4px 4px;background:#f43f5e;top:10px;left:18px;animation:stampHandle 2.2s ease-in-out infinite}
+
+/* QUICK ACCESS */
+.quick-access-section{padding:80px 7% 60px;position:relative;z-index:1;
+  background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(7,18,44,.55) 18%,rgba(7,18,44,.85) 45%,rgba(2,6,23,1) 100%)}
+.section-label{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:#b794ff;background:rgba(124,58,237,.18);padding:6px 14px;border-radius:999px;margin-bottom:16px}
+.section-title{color:#fff!important;font-size:42px;font-weight:950;letter-spacing:-1.5px;margin:0 0 40px}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.grid-card{background:rgba(255,255,255,.075);border-radius:24px;padding:26px;
+  border:1px solid rgba(255,255,255,.13);box-shadow:0 22px 55px rgba(0,0,0,.26);
+  transition:.28s ease;display:flex;flex-direction:column;justify-content:space-between;
+  min-height:200px;backdrop-filter:blur(18px)}
+.grid-card:hover{transform:translateY(-8px);box-shadow:0 30px 80px rgba(37,99,235,.22);border-color:rgba(96,165,250,.45)}
+.grid-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:14px}
+.grid-card h4{color:#fff!important;font-size:18px;font-weight:800;margin:0 0 8px}
+.grid-card p{color:#cbd5e1!important;font-size:14px;line-height:1.6;margin:0}
+.grid-link{display:inline-flex;align-items:center;margin-top:18px;color:#60a5fa!important;
+  font-size:13px;font-weight:700;text-decoration:none!important;transition:.2s}
+.grid-link:hover{color:#fff!important;gap:6px}
+
+/* SECURITY */
+.security-power-block{padding:40px 7% 60px;position:relative;z-index:1;background:#020617}
+.sec-container{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto}
+.sec-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;
+  padding:28px;text-align:center}
+.sec-icon{font-size:28px;margin-bottom:12px}
+.sec-card h4{color:#fff!important;font-size:16px;font-weight:800;margin:0 0 8px}
+.sec-card p{color:#a9b7d0!important;font-size:13px;line-height:1.6;margin:0}
+
+/* FOOTER */
+.security-footer{padding:24px 7%;background:#020617;border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center}
+.security-item{color:#a9b7d0;font-size:13px;display:flex;align-items:center;gap:8px}
+.security-icon{font-size:16px}
+
+/* ICON CSS (kept for grid cards on homepage) */
 .tool-top{display:flex;align-items:center;justify-content:space-between;position:relative}
-.tool-icon{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 16px 38px rgba(0,0,0,.25);position:relative;overflow:hidden}
 .arrow-icon{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.10);
   color:#dbeafe!important;display:flex;align-items:center;justify-content:center;
   font-weight:950;transition:.28s ease;border:1px solid rgba(255,255,255,.14)}
-.x106-card:hover .arrow-icon{transform:translateX(5px);background:#2563eb;color:#fff!important}
-.x106-card h3{color:#fff!important;font-size:25px;margin:26px 0 10px;font-weight:950;position:relative}
-.x106-card p{color:#cbd5e1!important;line-height:1.68;margin:0;font-size:16px;position:relative}
 
-/* ── ICON: EDIT ── */
-.icon-edit{background:rgba(16,185,129,.18)}
-.edit-doc{position:absolute;width:26px;height:32px;border-radius:5px;background:#10b981;left:50%;top:50%;transform:translate(-50%,-54%);}
-.edit-doc::before{content:"";position:absolute;left:5px;right:5px;top:8px;height:2px;background:rgba(255,255,255,.5);box-shadow:0 5px 0 rgba(255,255,255,.5),0 10px 0 rgba(255,255,255,.5);}
-.edit-pencil{position:absolute;width:5px;height:18px;background:linear-gradient(180deg,#fde68a,#f59e0b);border-radius:2px 2px 0 0;bottom:8px;right:8px;transform-origin:bottom center;animation:pencilWrite 1.8s ease-in-out infinite;}
-.edit-pencil::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);border-left:2.5px solid transparent;border-right:2.5px solid transparent;border-top:5px solid #f59e0b;}
-.edit-pencil::before{content:"";position:absolute;top:-4px;left:0;right:0;height:5px;background:#fca5a5;border-radius:2px 2px 0 0;}
-.edit-spark{position:absolute;width:5px;height:5px;border-radius:50%;background:#34d399;bottom:9px;right:7px;opacity:0;animation:sparkPop 1.8s ease-in-out infinite;}
-
-/* ── ICON: MERGE ── */
-.mini-file{position:absolute;width:19px;height:25px;border-radius:5px;background:linear-gradient(135deg,#60a5fa,#2563eb);box-shadow:0 8px 18px rgba(37,99,235,.35)}
-.file-a{left:15px;top:17px;animation:mergeA 2.2s ease-in-out infinite}
-.file-b{left:24px;top:17px;animation:mergeB 2.2s ease-in-out infinite}
-.file-c{left:33px;top:17px;animation:mergeC 2.2s ease-in-out infinite}
-.icon-merge{background:rgba(37,99,235,.18)}
-
-/* ── ICON: SPLIT ── */
-.icon-split{background:rgba(236,72,153,.18)}
-.cut-line{position:absolute;width:38px;height:3px;background:#f9a8d4;transform:rotate(-35deg);animation:cutLine 2.4s ease-in-out infinite}
-.blade{position:absolute;width:22px;height:10px;border-radius:8px;background:#ec4899}
-.blade-left{left:13px;top:20px;transform:rotate(-35deg);animation:bladeLeft 2.4s ease-in-out infinite}
-.blade-right{right:13px;bottom:20px;transform:rotate(-35deg);animation:bladeRight 2.4s ease-in-out infinite}
-
-/* ── ICON: WATERMARK ── */
-.icon-watermark{background:rgba(244,63,94,.18)}
-.stamp-base{position:absolute;width:34px;height:12px;border-radius:8px;background:#fb7185;bottom:15px;animation:stampBase 2.2s ease-in-out infinite}
-.stamp-handle{position:absolute;width:18px;height:28px;border-radius:8px 8px 4px 4px;background:#f43f5e;top:13px;animation:stampHandle 2.2s ease-in-out infinite}
-.stamp-shine{position:absolute;width:8px;height:8px;background:#ffe4e6;border-radius:50%;right:14px;top:15px;animation:shinePop 1.8s ease-in-out infinite}
-
-/* ── KEYFRAMES ── */
+/* KEYFRAMES */
 @keyframes fadeDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeLeft{from{opacity:0;transform:translateX(-55px)}to{opacity:1;transform:translateX(0)}}
 @keyframes fadeRight{from{opacity:0;transform:translateX(55px)}to{opacity:1;transform:translateX(0)}}
-@keyframes softFadeUp{from{opacity:0;transform:translateY(35px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes floatPdf{0%{transform:translateY(0)}50%{transform:translateY(-14px)}100%{transform:translateY(0)}}
 @keyframes pulseDot{0%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.62}100%{transform:scale(1);opacity:1}}
-@keyframes orbitMove{0%{transform:translateY(0) translateX(0)}25%{transform:translateY(-10px) translateX(8px)}50%{transform:translateY(0) translateX(16px)}75%{transform:translateY(10px) translateX(8px)}100%{transform:translateY(0) translateX(0)}}
-@keyframes ringPulse{0%,100%{opacity:.35;transform:scale(1) rotate(-10deg)}50%{opacity:.9;transform:scale(1.08) rotate(-10deg)}}
-@keyframes fileShineInside{0%{left:-85%}45%{left:125%}100%{left:125%}}
-@keyframes buttonShine{0%{left:-90%}45%{left:130%}100%{left:130%}}
 @keyframes glowFloatOne{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
 @keyframes glowFloatTwo{0%,100%{transform:translate(0,0)}50%{transform:translate(-35px,40px)}}
+@keyframes pencilWrite{0%,100%{transform:rotate(-35deg) translate(0,0)}20%{transform:rotate(-30deg) translate(1px,-2px)}40%{transform:rotate(-38deg) translate(-1px,1px)}60%{transform:rotate(-28deg) translate(2px,-3px)}80%{transform:rotate(-40deg) translate(-1px,2px)}}
+@keyframes sparkPop{0%,100%{opacity:0;transform:scale(0) translate(0,0)}30%{opacity:1;transform:scale(1) translate(-4px,-5px)}60%{opacity:0;transform:scale(.5) translate(-7px,-8px)}}
 @keyframes mergeA{0%,100%{transform:translateX(-6px)}50%{transform:translateX(4px)}}
-@keyframes mergeB{0%,100%{transform:translateX(0)}50%{transform:translateX(0)}}
 @keyframes mergeC{0%,100%{transform:translateX(6px)}50%{transform:translateX(-4px)}}
 @keyframes cutLine{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes bladeLeft{0%,100%{transform:rotate(-35deg) translateX(0)}50%{transform:rotate(-35deg) translateX(-5px)}}
 @keyframes bladeRight{0%,100%{transform:rotate(-35deg) translateX(0)}50%{transform:rotate(-35deg) translateX(5px)}}
 @keyframes stampBase{0%,100%{transform:scaleX(1);opacity:.75}50%{transform:scaleX(1.2);opacity:1}}
 @keyframes stampHandle{0%,100%{transform:translateY(-2px)}50%{transform:translateY(7px)}}
-@keyframes shinePop{0%,100%{transform:scale(.6);opacity:.4}50%{transform:scale(1.25);opacity:1}}
-@keyframes pencilWrite{0%,100%{transform:rotate(-35deg) translate(0,0)}20%{transform:rotate(-30deg) translate(1px,-2px)}40%{transform:rotate(-38deg) translate(-1px,1px)}60%{transform:rotate(-28deg) translate(2px,-3px)}80%{transform:rotate(-40deg) translate(-1px,2px)}}
-@keyframes sparkPop{0%,100%{opacity:0;transform:scale(0) translate(0,0)}30%{opacity:1;transform:scale(1) translate(-4px,-5px)}60%{opacity:0;transform:scale(.5) translate(-7px,-8px)}}
 
 /* MOBILE */
 @media(max-width:900px){
   .x106-top{flex-direction:column;gap:22px;margin-bottom:55px}
   .x106-main{grid-template-columns:1fr}
   .x106-left h1{letter-spacing:-2px;font-size:58px}
-  .x106-grid{grid-template-columns:1fr}
+  .quick-grid{grid-template-columns:1fr 1fr}
+  .sec-container{grid-template-columns:1fr}
   .x106-hero{padding:28px 22px 60px}
-  .x106-tools{padding:70px 22px 100px}
-  .x106-upload-card{padding:34px 22px}
-  .x106-upload-btn{min-height:56px;white-space:nowrap}
+  .quick-access-section{padding:60px 22px 40px}
+}
+@media(max-width:500px){
+  .quick-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 <div class="x106-app">
-  <section class="x106-hero">
-    <div class="x106-bg-glow glow-one"></div>
-    <div class="x106-bg-glow glow-two"></div>
-    <div class="x106-bg-grid"></div>
+  <div class="x106-bg-glow glow-one"></div>
+  <div class="x106-bg-glow glow-two"></div>
+  <div class="x106-bg-grid"></div>
 
+  <section class="x106-hero">
     <div class="x106-top">
       <div class="x106-brand">
         <div class="x106-logo">X</div>
@@ -207,121 +206,196 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 
     <div class="x106-main">
       <div class="x106-left">
-        <div class="x106-badge">
-          <span></span>
-          Secure • Private • Internal
-        </div>
+        <div class="x106-badge"><span></span>Secure • Private • Internal</div>
         <h1>PDF Hub Centre</h1>
-        <p>Merge, split, edit and watermark documents within the Exchange 106 internal environment.</p>
+        <p>Merge, split, edit and convert documents within the Exchange 106 internal Microsoft environment.</p>
       </div>
-      <div class="x106-upload-card">
-        <div class="pdf-orbit">
-          <span class="orb orb-one"></span>
-          <span class="orb orb-two"></span>
-          <span class="orb orb-three"></span>
-          <span class="orbit-ring ring-one"></span>
-          <span class="orbit-ring ring-two"></span>
-          <div class="x106-file-icon"><span>PDF</span></div>
+
+      <div class="hero-right-section">
+        <div class="slider-stage">
+          <div class="slider-track" id="sliderTrack">
+
+            <div class="tool-card card-edit active" data-index="0">
+              <div class="tool-icon">
+                <div class="icon-element edit-pencil"></div>
+                <div class="icon-element edit-spark"></div>
+              </div>
+              <h3>Edit PDF</h3>
+              <p>Quickly annotate, reorder, or remove pages from any PDF document.</p>
+              <a href="https://itd-e106.github.io/pdf-toolkit/editor.html" target="_blank" class="launch-btn">Open Tool</a>
+            </div>
+
+            <div class="tool-card card-merge next" data-index="1">
+              <div class="tool-icon">
+                <div class="icon-element file-a"></div>
+                <div class="icon-element file-b"></div>
+              </div>
+              <h3>Merge PDF</h3>
+              <p>Combine multiple files into one seamless professional document.</p>
+              <a href="https://itd-e106.github.io/pdf-toolkit/merge.html" target="_blank" class="launch-btn">Open Tool</a>
+            </div>
+
+            <div class="tool-card card-split hidden" data-index="2">
+              <div class="tool-icon">
+                <div class="icon-element cut-line"></div>
+                <div class="icon-element blade blade-left"></div>
+                <div class="icon-element blade blade-right"></div>
+              </div>
+              <h3>Split PDF</h3>
+              <p>Extract specific pages or split a large PDF into smaller files.</p>
+              <a href="https://itd-e106.github.io/pdf-toolkit/split.html" target="_blank" class="launch-btn">Open Tool</a>
+            </div>
+
+            <div class="tool-card card-watermark hidden" data-index="3">
+              <div class="tool-icon">
+                <div class="icon-element stamp-base"></div>
+                <div class="icon-element stamp-handle"></div>
+              </div>
+              <h3>Watermark PDF</h3>
+              <p>Add secure corporate stamps and internal security labels.</p>
+              <a href="https://itd-e106.github.io/pdf-toolkit/watermark.html" target="_blank" class="launch-btn">Open Tool</a>
+            </div>
+
+          </div>
+
+          <div class="slider-nav" id="sliderNav">
+            <div class="nav-dot active" data-index="0"></div>
+            <div class="nav-dot" data-index="1"></div>
+            <div class="nav-dot" data-index="2"></div>
+            <div class="nav-dot" data-index="3"></div>
+          </div>
         </div>
-        <h2>Start with your file</h2>
-        <p>Select a document tool below to process your file securely.</p>
-        <a href="#tools" class="x106-upload-btn">View Tools</a>
-        <small>No external PDF website required.</small>
       </div>
     </div>
   </section>
 
-  <section id="tools" class="x106-tools">
-    <div class="x106-section-title">
-      <h2>Document Tools</h2>
-      <p>Choose the operation you need.</p>
-    </div>
-
-    <div class="x106-grid">
-
-      <!-- 1. EDIT PDF -->
-      <a href="editor.html" class="x106-card">
-        <div class="tool-top">
-          <span class="tool-icon icon-edit">
-            <span class="edit-doc"></span>
-            <span class="edit-pencil"></span>
-            <span class="edit-spark"></span>
-          </span>
-          <span class="arrow-icon">→</span>
+  <section class="quick-access-section">
+    <span class="section-label">Quick Access</span>
+    <h2 class="section-title">All Tools at a Glance</h2>
+    <div class="quick-grid">
+      <div class="grid-card x106-card">
+        <div>
+          <div class="grid-icon" style="background:rgba(255,95,109,.2);color:#ff5f6d;">✎</div>
+          <h4>Edit PDF</h4>
+          <p>Annotate, reorder, and modify PDF pages securely.</p>
         </div>
-        <h3>Edit PDF</h3>
-        <p>Annotate, reorder, and modify pages in your PDF.</p>
-      </a>
-
-      <!-- 2. MERGE PDF -->
-      <a href="merge.html" class="x106-card">
-        <div class="tool-top">
-          <span class="tool-icon icon-merge">
-            <span class="mini-file file-a"></span>
-            <span class="mini-file file-b"></span>
-            <span class="mini-file file-c"></span>
-          </span>
-          <span class="arrow-icon">→</span>
+        <a href="https://itd-e106.github.io/pdf-toolkit/editor.html" target="_blank" class="grid-link">Launch Tool →</a>
+      </div>
+      <div class="grid-card x106-card">
+        <div>
+          <div class="grid-icon" style="background:rgba(33,147,176,.2);color:#2193b0;">⧉</div>
+          <h4>Merge PDF</h4>
+          <p>Combine multiple files into one professional PDF.</p>
         </div>
-        <h3>Merge PDF</h3>
-        <p>Combine multiple PDF files into one document.</p>
-      </a>
-
-      <!-- 3. SPLIT PDF -->
-      <a href="split.html" class="x106-card">
-        <div class="tool-top">
-          <span class="tool-icon icon-split">
-            <span class="cut-line"></span>
-            <span class="blade blade-left"></span>
-            <span class="blade blade-right"></span>
-          </span>
-          <span class="arrow-icon">→</span>
+        <a href="https://itd-e106.github.io/pdf-toolkit/merge.html" target="_blank" class="grid-link">Launch Tool →</a>
+      </div>
+      <div class="grid-card x106-card">
+        <div>
+          <div class="grid-icon" style="background:rgba(142,45,226,.2);color:#8e2de2;">✂</div>
+          <h4>Split PDF</h4>
+          <p>Extract pages or define ranges from your documents.</p>
         </div>
-        <h3>Split PDF</h3>
-        <p>Extract selected pages or page ranges.</p>
-      </a>
-
-      <!-- 4. WATERMARK PDF -->
-      <a href="watermark.html" class="x106-card">
-        <div class="tool-top">
-          <span class="tool-icon icon-watermark">
-            <span class="stamp-base"></span>
-            <span class="stamp-handle"></span>
-            <span class="stamp-shine"></span>
-          </span>
-          <span class="arrow-icon">→</span>
+        <a href="https://itd-e106.github.io/pdf-toolkit/split.html" target="_blank" class="grid-link">Launch Tool →</a>
+      </div>
+      <div class="grid-card x106-card">
+        <div>
+          <div class="grid-icon" style="background:rgba(17,153,142,.2);color:#11998e;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M12 8v8"></path><path d="M8 12h8"></path>
+            </svg>
+          </div>
+          <h4>Watermark PDF</h4>
+          <p>Apply internal corporate stamps and labels.</p>
         </div>
-        <h3>Watermark PDF</h3>
-        <p>Add confidential, internal or approved watermark.</p>
-      </a>
-
+        <a href="https://itd-e106.github.io/pdf-toolkit/watermark.html" target="_blank" class="grid-link">Launch Tool →</a>
+      </div>
     </div>
   </section>
+
+  <section class="security-power-block">
+    <div class="sec-container">
+      <div class="sec-card">
+        <div class="sec-icon">🛡️</div>
+        <h4>Internal Environment</h4>
+        <p>Operates entirely within the Exchange 106 secure perimeter.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">🔒</div>
+        <h4>Zero Storage</h4>
+        <p>Documents are processed in-memory. No data ever hits a disk.</p>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">✅</div>
+        <h4>MS Compliant</h4>
+        <p>Fully aligned with corporate Microsoft data governance policies.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="security-footer">
+    <div class="security-item"><span class="security-icon">🛡️</span> Exchange 106 Secure PDF Hub</div>
+  </footer>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const toolButton = document.querySelector(".x106-upload-btn");
-  const toolsSection = document.querySelector("#tools");
-  if (toolButton && toolsSection) {
-    toolButton.addEventListener("click", function (e) {
-      e.preventDefault();
-      toolsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+(function() {
+  function initSlider() {
+    var cards = document.querySelectorAll('.tool-card');
+    var dots = document.querySelectorAll('.nav-dot');
+    if (!cards.length) return;
+    var currentIndex = 0;
+
+    function update(newIndex) {
+      currentIndex = newIndex;
+      cards.forEach(function(card, i) {
+        card.className = card.className.replace(/\s*(active|next|prev|hidden)/g, '');
+        if (i === currentIndex) card.classList.add('active');
+        else if (i === (currentIndex + 1) % cards.length) card.classList.add('next');
+        else if (i === (currentIndex - 1 + cards.length) % cards.length) card.classList.add('prev');
+        else card.classList.add('hidden');
+      });
+      dots.forEach(function(dot, i) { dot.classList.toggle('active', i === currentIndex); });
+    }
+
+    setInterval(function() { update((currentIndex + 1) % cards.length); }, 5000);
+
+    cards.forEach(function(card, i) {
+      card.addEventListener('click', function(e) {
+        if (e.target.classList.contains('launch-btn')) return;
+        update(i);
+      });
+    });
+
+    dots.forEach(function(dot, i) {
+      dot.addEventListener('click', function() { update(i); });
     });
   }
 
-  const cards = document.querySelectorAll(".x106-card");
-  cards.forEach(function (card) {
-    card.addEventListener("mousemove", function (e) {
-      const rect = card.getBoundingClientRect();
-      card.style.background =
-        "radial-gradient(circle at " + (e.clientX - rect.left) + "px " + (e.clientY - rect.top) + "px, rgba(96,165,250,.22), rgba(255,255,255,.075) 48%)";
+  function initGridGlow() {
+    var gridCards = document.querySelectorAll('.grid-card.x106-card');
+    gridCards.forEach(function(card) {
+      card.addEventListener('mousemove', function(e) {
+        var rect = card.getBoundingClientRect();
+        card.style.background = 'radial-gradient(circle at ' + (e.clientX - rect.left) + 'px ' + (e.clientY - rect.top) + 'px, rgba(96,165,250,.22), rgba(255,255,255,.075) 48%)';
+      });
+      card.addEventListener('mouseleave', function() {
+        card.style.background = 'rgba(255,255,255,.075)';
+      });
     });
-    card.addEventListener("mouseleave", function () {
-      card.style.background = "rgba(255,255,255,.075)";
-    });
-  });
-});
+  }
+
+  function start() {
+    initSlider();
+    initGridGlow();
+  }
+
+  if (document.readyState === 'complete') {
+    start();
+  } else {
+    window.addEventListener('load', start);
+  }
+})();
 </script>
 </body>
 </html>
