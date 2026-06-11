@@ -24,7 +24,6 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
   background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
   background-size:48px 48px;mask-image:radial-gradient(circle at center,black 0%,transparent 72%);z-index:0}
 
-/* HERO */
 .x106-hero{min-height:100vh;padding:34px 7% 60px;position:relative;z-index:1;background:transparent!important}
 .x106-hero::after{content:"";position:absolute;left:0;right:0;bottom:-120px;height:240px;
   background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(7,18,44,.55) 45%,rgba(7,18,44,.95) 100%);
@@ -51,62 +50,52 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
   letter-spacing:-4px;font-weight:950;text-shadow:0 18px 50px rgba(0,0,0,.45)}
 .x106-left p{margin-top:30px;max-width:720px;color:#dbeafe!important;font-size:22px;line-height:1.75}
 
-/* SLIDER */
+/* CAROUSEL */
 .hero-right-section{animation:fadeRight .9s ease both}
-.slider-stage{position:relative;width:100%;max-width:420px;margin:0 auto}
-.slider-track{position:relative;height:340px}
-.tool-card{position:absolute;inset:0;border-radius:28px;padding:32px;
+.slider-stage{position:relative;width:100%;max-width:420px;margin:0 auto;user-select:none}
+.carousel-scene{width:100%;height:360px;perspective:900px;cursor:grab}
+.carousel-scene:active{cursor:grabbing}
+.carousel-ring{width:100%;height:100%;position:relative;transform-style:preserve-3d}
+.tool-card{position:absolute;left:50%;top:50%;width:300px;margin-left:-150px;margin-top:-160px;
+  height:320px;border-radius:28px;padding:28px;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);
   backdrop-filter:blur(28px);box-shadow:0 38px 95px rgba(0,0,0,.42);
-  display:flex;flex-direction:column;justify-content:space-between;
-  transition:all .5s cubic-bezier(.4,0,.2,1);cursor:pointer;overflow:hidden}
-.tool-card.active{opacity:1;transform:translateX(0) scale(1);z-index:3;pointer-events:auto}
-.tool-card.next{opacity:.5;transform:translateX(18px) scale(.93);z-index:2;pointer-events:none}
-.tool-card.prev{opacity:.5;transform:translateX(-18px) scale(.93);z-index:2;pointer-events:none}
-.tool-card.hidden{opacity:0;transform:translateX(0) scale(.85);z-index:1;pointer-events:none}
-.tool-card h3{color:#fff!important;font-size:24px;font-weight:950;margin:16px 0 8px}
-.tool-card p{color:#cbd5e1!important;font-size:15px;line-height:1.6;margin:0;flex:1}
-.launch-btn{display:inline-flex;align-items:center;justify-content:center;margin-top:20px;
-  padding:11px 24px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  will-change:transform}
+.tool-card h3{color:#fff!important;font-size:22px;font-weight:950;margin:14px 0 8px}
+.tool-card p{color:#cbd5e1!important;font-size:14px;line-height:1.6;margin:0;flex:1}
+.launch-btn{display:inline-flex;align-items:center;justify-content:center;margin-top:16px;
+  padding:10px 22px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#7c3aed);
   color:#fff!important;text-decoration:none!important;font-weight:800;font-size:14px;
-  transition:.2s ease;position:relative;overflow:hidden;z-index:10}
+  transition:.2s ease;position:relative;z-index:10}
 .launch-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(37,99,235,.4)}
-.slider-nav{display:flex;justify-content:center;gap:8px;margin-top:18px}
-.nav-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:.2s}
-.nav-dot.active{background:#60a5fa;box-shadow:0 0 10px rgba(96,165,250,.6)}
+.carousel-hint{text-align:center;margin-top:14px;color:rgba(255,255,255,.3);font-size:12px;letter-spacing:.04em}
 
-/* TOOL ICON inside slider cards */
 .tool-icon{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.25)}
 
-/* card accent colours */
-.card-edit{border-color:rgba(16,185,129,.3)}
+.card-edit{border-color:rgba(16,185,129,.3)!important}
 .card-edit .tool-icon{background:rgba(16,185,129,.18)}
-.card-merge{border-color:rgba(37,99,235,.3)}
+.card-merge{border-color:rgba(37,99,235,.3)!important}
 .card-merge .tool-icon{background:rgba(37,99,235,.18)}
-.card-split{border-color:rgba(236,72,153,.3)}
+.card-split{border-color:rgba(236,72,153,.3)!important}
 .card-split .tool-icon{background:rgba(236,72,153,.18)}
-.card-watermark{border-color:rgba(244,63,94,.3)}
+.card-watermark{border-color:rgba(244,63,94,.3)!important}
 .card-watermark .tool-icon{background:rgba(244,63,94,.18)}
 
-/* ICON ELEMENTS */
 .icon-element{position:absolute}
-/* edit */
 .edit-pencil{width:5px;height:18px;background:linear-gradient(180deg,#fde68a,#f59e0b);border-radius:2px 2px 0 0;
   bottom:8px;right:8px;transform-origin:bottom center;animation:pencilWrite 1.8s ease-in-out infinite}
 .edit-pencil::before{content:"";position:absolute;top:-4px;left:0;right:0;height:5px;background:#fca5a5;border-radius:2px 2px 0 0}
 .edit-pencil::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
   border-left:2.5px solid transparent;border-right:2.5px solid transparent;border-top:5px solid #f59e0b}
 .edit-spark{width:5px;height:5px;border-radius:50%;background:#34d399;bottom:9px;right:7px;opacity:0;animation:sparkPop 1.8s ease-in-out infinite}
-/* merge */
 .file-a{width:19px;height:25px;border-radius:5px;background:linear-gradient(135deg,#60a5fa,#2563eb);left:10px;top:15px;animation:mergeA 2.2s ease-in-out infinite}
 .file-b{width:19px;height:25px;border-radius:5px;background:linear-gradient(135deg,#60a5fa,#2563eb);left:26px;top:15px;animation:mergeC 2.2s ease-in-out infinite}
-/* split */
 .cut-line{width:38px;height:3px;background:#f9a8d4;transform:rotate(-35deg);top:25px;left:8px;animation:cutLine 2.4s ease-in-out infinite}
 .blade{width:22px;height:10px;border-radius:8px;background:#ec4899}
 .blade-left{left:8px;top:15px;transform:rotate(-35deg);animation:bladeLeft 2.4s ease-in-out infinite}
 .blade-right{right:8px;bottom:15px;transform:rotate(-35deg);animation:bladeRight 2.4s ease-in-out infinite}
-/* stamp */
 .stamp-base{width:34px;height:12px;border-radius:8px;background:#fb7185;bottom:12px;left:10px;animation:stampBase 2.2s ease-in-out infinite}
 .stamp-handle{width:18px;height:26px;border-radius:8px 8px 4px 4px;background:#f43f5e;top:10px;left:18px;animation:stampHandle 2.2s ease-in-out infinite}
 
@@ -128,7 +117,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 .grid-card p{color:#cbd5e1!important;font-size:14px;line-height:1.6;margin:0}
 .grid-link{display:inline-flex;align-items:center;margin-top:18px;color:#60a5fa!important;
   font-size:13px;font-weight:700;text-decoration:none!important;transition:.2s}
-.grid-link:hover{color:#fff!important;gap:6px}
+.grid-link:hover{color:#fff!important}
 
 /* SECURITY */
 .security-power-block{padding:40px 7% 60px;position:relative;z-index:1;background:#020617}
@@ -139,19 +128,11 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 .sec-card h4{color:#fff!important;font-size:16px;font-weight:800;margin:0 0 8px}
 .sec-card p{color:#a9b7d0!important;font-size:13px;line-height:1.6;margin:0}
 
-/* FOOTER */
 .security-footer{padding:24px 7%;background:#020617;border-top:1px solid rgba(255,255,255,.06);
   display:flex;align-items:center;justify-content:center}
 .security-item{color:#a9b7d0;font-size:13px;display:flex;align-items:center;gap:8px}
 .security-icon{font-size:16px}
 
-/* ICON CSS (kept for grid cards on homepage) */
-.tool-top{display:flex;align-items:center;justify-content:space-between;position:relative}
-.arrow-icon{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.10);
-  color:#dbeafe!important;display:flex;align-items:center;justify-content:center;
-  font-weight:950;transition:.28s ease;border:1px solid rgba(255,255,255,.14)}
-
-/* KEYFRAMES */
 @keyframes fadeDown{from{opacity:0;transform:translateY(-22px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeLeft{from{opacity:0;transform:translateX(-55px)}to{opacity:1;transform:translateX(0)}}
 @keyframes fadeRight{from{opacity:0;transform:translateX(55px)}to{opacity:1;transform:translateX(0)}}
@@ -168,7 +149,6 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 @keyframes stampBase{0%,100%{transform:scaleX(1);opacity:.75}50%{transform:scaleX(1.2);opacity:1}}
 @keyframes stampHandle{0%,100%{transform:translateY(-2px)}50%{transform:translateY(7px)}}
 
-/* MOBILE */
 @media(max-width:900px){
   .x106-top{flex-direction:column;gap:22px;margin-bottom:55px}
   .x106-main{grid-template-columns:1fr}
@@ -178,9 +158,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
   .x106-hero{padding:28px 22px 60px}
   .quick-access-section{padding:60px 22px 40px}
 }
-@media(max-width:500px){
-  .quick-grid{grid-template-columns:1fr}
-}
+@media(max-width:500px){.quick-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -213,9 +191,10 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 
       <div class="hero-right-section">
         <div class="slider-stage">
-          <div class="slider-track" id="sliderTrack">
+          <div class="carousel-scene" id="carouselScene">
+            <div class="carousel-ring" id="carouselRing">
 
-            <div class="tool-card card-edit active" data-index="0">
+            <div class="tool-card card-edit" data-index="0">
               <div class="tool-icon">
                 <div class="icon-element edit-pencil"></div>
                 <div class="icon-element edit-spark"></div>
@@ -225,7 +204,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
               <a href="https://itd-e106.github.io/pdf-toolkit/editor.html" target="_blank" class="launch-btn">Open Tool</a>
             </div>
 
-            <div class="tool-card card-merge next" data-index="1">
+            <div class="tool-card card-merge" data-index="1">
               <div class="tool-icon">
                 <div class="icon-element file-a"></div>
                 <div class="icon-element file-b"></div>
@@ -235,7 +214,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
               <a href="https://itd-e106.github.io/pdf-toolkit/merge.html" target="_blank" class="launch-btn">Open Tool</a>
             </div>
 
-            <div class="tool-card card-split hidden" data-index="2">
+            <div class="tool-card card-split" data-index="2">
               <div class="tool-icon">
                 <div class="icon-element cut-line"></div>
                 <div class="icon-element blade blade-left"></div>
@@ -246,7 +225,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
               <a href="https://itd-e106.github.io/pdf-toolkit/split.html" target="_blank" class="launch-btn">Open Tool</a>
             </div>
 
-            <div class="tool-card card-watermark hidden" data-index="3">
+            <div class="tool-card card-watermark" data-index="3">
               <div class="tool-icon">
                 <div class="icon-element stamp-base"></div>
                 <div class="icon-element stamp-handle"></div>
@@ -256,14 +235,9 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
               <a href="https://itd-e106.github.io/pdf-toolkit/watermark.html" target="_blank" class="launch-btn">Open Tool</a>
             </div>
 
-          </div>
-
-          <div class="slider-nav" id="sliderNav">
-            <div class="nav-dot active" data-index="0"></div>
-            <div class="nav-dot" data-index="1"></div>
-            <div class="nav-dot" data-index="2"></div>
-            <div class="nav-dot" data-index="3"></div>
-          </div>
+          </div><!-- /carousel-ring -->
+          </div><!-- /carousel-scene -->
+          <p class="carousel-hint">scroll or drag to spin</p>
         </div>
       </div>
     </div>
@@ -340,44 +314,95 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 
 <script>
 (function() {
-  function initSlider() {
-    var cards = document.querySelectorAll('.tool-card');
-    var dots = document.querySelectorAll('.nav-dot');
-    if (!cards.length) return;
-    var currentIndex = 0;
 
-    function update(newIndex) {
-      currentIndex = newIndex;
-      cards.forEach(function(card, i) {
-        card.className = card.className.replace(/\s*(active|next|prev|hidden)/g, '');
-        if (i === currentIndex) card.classList.add('active');
-        else if (i === (currentIndex + 1) % cards.length) card.classList.add('next');
-        else if (i === (currentIndex - 1 + cards.length) % cards.length) card.classList.add('prev');
-        else card.classList.add('hidden');
-      });
-      dots.forEach(function(dot, i) { dot.classList.toggle('active', i === currentIndex); });
-    }
+  /* ── Carousel ─────────────────────────────────────────────── */
+  function initCarousel() {
+    var scene  = document.getElementById('carouselScene');
+    var ring   = document.getElementById('carouselRing');
+    if (!scene || !ring) return;
 
-    setInterval(function() { update((currentIndex + 1) % cards.length); }, 5000);
+    var cards  = ring.querySelectorAll('.tool-card');
+    var n      = cards.length;
+    var radius = 260;                 // px — how far cards sit from centre
+    var angle  = 0;                   // current rotation angle in degrees
+    var vel    = 0.18;                // auto-spin speed deg/frame
+    var momentum = 0;                 // extra velocity from drag / scroll
 
+    // position each card around the ring
     cards.forEach(function(card, i) {
-      card.addEventListener('click', function(e) {
-        if (e.target.classList.contains('launch-btn')) return;
-        update(i);
-      });
+      var theta = (360 / n) * i;
+      card.dataset.theta = theta;
     });
 
-    dots.forEach(function(dot, i) {
-      dot.addEventListener('click', function() { update(i); });
+    // ── rAF loop ──────────────────────────────────────────────
+    function tick() {
+      // decay momentum
+      momentum *= 0.94;
+      angle += vel + momentum;
+
+      cards.forEach(function(card, i) {
+        var theta = parseFloat(card.dataset.theta) + angle;
+        var rad   = theta * Math.PI / 180;
+        var x     = Math.sin(rad) * radius;
+        var z     = Math.cos(rad) * radius;
+        // scale + opacity by z depth
+        var norm  = (z + radius) / (2 * radius);   // 0..1
+        var scale = 0.72 + norm * 0.28;
+        var op    = 0.35 + norm * 0.65;
+        var zi    = Math.round(norm * 10);
+        card.style.transform = 'translateX('+x.toFixed(1)+'px) translateZ('+z.toFixed(1)+'px) scale('+scale.toFixed(3)+')';
+        card.style.opacity   = op.toFixed(3);
+        card.style.zIndex    = zi;
+        // only the frontmost card gets pointer events
+        card.style.pointerEvents = (zi >= 9) ? 'auto' : 'none';
+      });
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // ── Scroll to spin ─────────────────────────────────────────
+    scene.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      momentum += e.deltaY * 0.04;
+    }, { passive: false });
+
+    // ── Drag to spin ───────────────────────────────────────────
+    var dragStart = null;
+    var velSnap   = 0;
+
+    scene.addEventListener('mousedown', function(e) {
+      dragStart = e.clientX;
+      velSnap   = momentum;
     });
+    window.addEventListener('mousemove', function(e) {
+      if (dragStart === null) return;
+      var dx = e.clientX - dragStart;
+      momentum = dx * 0.06;
+      dragStart = e.clientX;
+    });
+    window.addEventListener('mouseup', function() { dragStart = null; });
+
+    // touch
+    var touchStart = null;
+    scene.addEventListener('touchstart', function(e) {
+      touchStart = e.touches[0].clientX;
+    }, { passive: true });
+    scene.addEventListener('touchmove', function(e) {
+      if (touchStart === null) return;
+      var dx = e.touches[0].clientX - touchStart;
+      momentum = dx * 0.06;
+      touchStart = e.touches[0].clientX;
+    }, { passive: true });
+    scene.addEventListener('touchend', function() { touchStart = null; });
   }
 
+  /* ── Grid glow ────────────────────────────────────────────── */
   function initGridGlow() {
-    var gridCards = document.querySelectorAll('.grid-card.x106-card');
-    gridCards.forEach(function(card) {
+    document.querySelectorAll('.grid-card.x106-card').forEach(function(card) {
       card.addEventListener('mousemove', function(e) {
-        var rect = card.getBoundingClientRect();
-        card.style.background = 'radial-gradient(circle at ' + (e.clientX - rect.left) + 'px ' + (e.clientY - rect.top) + 'px, rgba(96,165,250,.22), rgba(255,255,255,.075) 48%)';
+        var r = card.getBoundingClientRect();
+        card.style.background = 'radial-gradient(circle at '+(e.clientX-r.left)+'px '+(e.clientY-r.top)+'px, rgba(96,165,250,.22), rgba(255,255,255,.075) 48%)';
       });
       card.addEventListener('mouseleave', function() {
         card.style.background = 'rgba(255,255,255,.075)';
@@ -385,15 +410,12 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
     });
   }
 
-  function start() {
-    initSlider();
-    initGridGlow();
-  }
+  function start() { initCarousel(); initGridGlow(); }
 
-  if (document.readyState === 'complete') {
-    start();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    window.addEventListener('load', start);
+    start();
   }
 })();
 </script>
