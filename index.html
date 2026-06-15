@@ -82,6 +82,8 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 .card-split .tool-icon{background:rgba(236,72,153,.18)}
 .card-watermark{border-color:rgba(244,63,94,.3)!important}
 .card-watermark .tool-icon{background:rgba(244,63,94,.18)}
+.card-organise{border-color:rgba(245,158,11,.3)!important}
+.card-organise .tool-icon{background:rgba(245,158,11,.18)}
 
 .icon-element{position:absolute}
 .edit-pencil{width:5px;height:18px;background:linear-gradient(180deg,#fde68a,#f59e0b);border-radius:2px 2px 0 0;
@@ -98,6 +100,11 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 .blade-right{right:8px;bottom:15px;transform:rotate(-35deg);animation:bladeRight 2.4s ease-in-out infinite}
 .stamp-base{width:34px;height:12px;border-radius:8px;background:#fb7185;bottom:12px;left:10px;animation:stampBase 2.2s ease-in-out infinite}
 .stamp-handle{width:18px;height:26px;border-radius:8px 8px 4px 4px;background:#f43f5e;top:10px;left:18px;animation:stampHandle 2.2s ease-in-out infinite}
+.org-bar{width:30px;height:5px;border-radius:3px;background:#fbbf24;left:10px;animation:orgBar 2s ease-in-out infinite}
+.org-bar-1{top:12px;animation-delay:0s}
+.org-bar-2{top:22px;width:22px;animation-delay:.15s}
+.org-bar-3{top:32px;width:26px;animation-delay:.3s}
+@keyframes orgBar{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
 
 /* QUICK ACCESS */
 .quick-access-section{padding:80px 7% 60px;position:relative;z-index:1;
@@ -105,7 +112,7 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 .section-label{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
   color:#b794ff;background:rgba(124,58,237,.18);padding:6px 14px;border-radius:999px;margin-bottom:16px}
 .section-title{color:#fff!important;font-size:42px;font-weight:950;letter-spacing:-1.5px;margin:0 0 40px}
-.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.quick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
 .grid-card{background:rgba(255,255,255,.075);border-radius:24px;padding:26px;
   border:1px solid rgba(255,255,255,.13);box-shadow:0 22px 55px rgba(0,0,0,.26);
   transition:.28s ease;display:flex;flex-direction:column;justify-content:space-between;
@@ -235,6 +242,17 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
               <a href="https://itd-e106.github.io/pdf-toolkit/watermark.html" target="_blank" class="launch-btn">Open Tool</a>
             </div>
 
+            <div class="tool-card card-organise" data-index="4">
+              <div class="tool-icon">
+                <div class="icon-element org-bar org-bar-1"></div>
+                <div class="icon-element org-bar org-bar-2"></div>
+                <div class="icon-element org-bar org-bar-3"></div>
+              </div>
+              <h3>Organise PDF</h3>
+              <p>Drag, reorder, and remove pages to arrange your PDF exactly how you need it.</p>
+              <a href="https://itd-e106.github.io/pdf-toolkit/organise.html" target="_blank" class="launch-btn">Open Tool</a>
+            </div>
+
           </div><!-- /carousel-ring -->
           </div><!-- /carousel-scene -->
           <p class="carousel-hint">scroll or drag to spin</p>
@@ -284,6 +302,14 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
         </div>
         <a href="https://itd-e106.github.io/pdf-toolkit/watermark.html" target="_blank" class="grid-link">Launch Tool →</a>
       </div>
+      <div class="grid-card x106-card">
+        <div>
+          <div class="grid-icon" style="background:rgba(245,158,11,.2);color:#f59e0b;">☰</div>
+          <h4>Organise PDF</h4>
+          <p>Drag and reorder pages to arrange your PDF your way.</p>
+        </div>
+        <a href="https://itd-e106.github.io/pdf-toolkit/organise.html" target="_blank" class="grid-link">Launch Tool →</a>
+      </div>
     </div>
   </section>
 
@@ -323,20 +349,17 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
 
     var cards  = ring.querySelectorAll('.tool-card');
     var n      = cards.length;
-    var radius = 260;                 // px — how far cards sit from centre
-    var angle  = 0;                   // current rotation angle in degrees
-    var vel    = 0.18;                // auto-spin speed deg/frame
-    var momentum = 0;                 // extra velocity from drag / scroll
+    var radius = 260;
+    var angle  = 0;
+    var vel    = 0.18;
+    var momentum = 0;
 
-    // position each card around the ring
     cards.forEach(function(card, i) {
       var theta = (360 / n) * i;
       card.dataset.theta = theta;
     });
 
-    // ── rAF loop ──────────────────────────────────────────────
     function tick() {
-      // decay momentum
       momentum *= 0.94;
       angle += vel + momentum;
 
@@ -345,15 +368,13 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
         var rad   = theta * Math.PI / 180;
         var x     = Math.sin(rad) * radius;
         var z     = Math.cos(rad) * radius;
-        // scale + opacity by z depth
-        var norm  = (z + radius) / (2 * radius);   // 0..1
+        var norm  = (z + radius) / (2 * radius);
         var scale = 0.72 + norm * 0.28;
         var op    = 0.35 + norm * 0.65;
         var zi    = Math.round(norm * 10);
         card.style.transform = 'translateX('+x.toFixed(1)+'px) translateZ('+z.toFixed(1)+'px) scale('+scale.toFixed(3)+')';
         card.style.opacity   = op.toFixed(3);
         card.style.zIndex    = zi;
-        // only the frontmost card gets pointer events
         card.style.pointerEvents = (zi >= 9) ? 'auto' : 'none';
       });
 
@@ -361,20 +382,13 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
     }
     requestAnimationFrame(tick);
 
-    // ── Scroll to spin ─────────────────────────────────────────
     scene.addEventListener('wheel', function(e) {
       e.preventDefault();
       momentum += e.deltaY * 0.04;
     }, { passive: false });
 
-    // ── Drag to spin ───────────────────────────────────────────
     var dragStart = null;
-    var velSnap   = 0;
-
-    scene.addEventListener('mousedown', function(e) {
-      dragStart = e.clientX;
-      velSnap   = momentum;
-    });
+    scene.addEventListener('mousedown', function(e) { dragStart = e.clientX; });
     window.addEventListener('mousemove', function(e) {
       if (dragStart === null) return;
       var dx = e.clientX - dragStart;
@@ -383,11 +397,8 @@ main,.container,.container-fluid,.row,.col-md-12,.col-lg-12,.wrapper-body,.page-
     });
     window.addEventListener('mouseup', function() { dragStart = null; });
 
-    // touch
     var touchStart = null;
-    scene.addEventListener('touchstart', function(e) {
-      touchStart = e.touches[0].clientX;
-    }, { passive: true });
+    scene.addEventListener('touchstart', function(e) { touchStart = e.touches[0].clientX; }, { passive: true });
     scene.addEventListener('touchmove', function(e) {
       if (touchStart === null) return;
       var dx = e.touches[0].clientX - touchStart;
