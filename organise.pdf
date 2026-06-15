@@ -1,0 +1,215 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Organise PDF - PDF Hub Centre</title><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script><script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script><style>
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--border:rgba(255,255,255,.12);--accent:#4f7cff;--red:#ef4444;--text:#e8eaf0;--muted:#9ca3c0;--muted2:#5d6480;--green:#22c55e;--orange:#f97316}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}header{height:58px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 18px;position:sticky;top:0;z-index:2}.logo{font-weight:700;letter-spacing:-.02em}.logo span{color:var(--accent)}.home-btn{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2563eb,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;text-decoration:none;box-shadow:0 6px 18px rgba(37,99,235,.4);flex-shrink:0}.home-btn:hover{opacity:.85}main{max-width:1100px;margin:0 auto;padding:24px}.grid{display:grid;grid-template-columns:380px 1fr;gap:20px}.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.drop{border:2px dashed var(--border);border-radius:14px;padding:26px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);transition:.2s}.drop:hover,.drop.drag{border-color:var(--accent);background:rgba(79,124,255,.07)}.drop h2{font-size:18px;margin:0 0 8px}.drop p{margin:0;color:var(--muted);font-size:13px}.btn{border:1px solid var(--border);background:var(--surface2);color:var(--text);padding:9px 13px;border-radius:9px;cursor:pointer;font-weight:600;font-size:13px}.btn:hover{filter:brightness(1.12)}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}.btn.danger{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.35);color:#fecaca}.btn.green{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.35);color:#bbf7d0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.file-list{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:8px}.file-list li{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:10px;background:var(--surface2);border:1px solid rgba(255,255,255,.06);font-size:13px}.file-list span.name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pill{font-size:11px;color:var(--muted);background:rgba(255,255,255,.06);border-radius:999px;padding:2px 7px;white-space:nowrap}.viewer{min-height:520px;display:flex;flex-direction:column}.viewer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--muted);font-size:13px}.pages{background:#0b0d12;border-radius:12px;border:1px solid var(--border);padding:18px;overflow:auto;min-height:460px;max-height:calc(100vh - 145px);display:flex;flex-direction:column;align-items:center;gap:16px}.page-wrap{background:white;box-shadow:0 6px 24px rgba(0,0,0,.45);position:relative}.page-wrap canvas{display:block}.page-num{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:white;border-radius:6px;padding:2px 7px;font-size:11px}.note{color:var(--muted);font-size:13px;line-height:1.5}.toast{position:fixed;right:20px;bottom:20px;background:#242a3d;border:1px solid var(--border);padding:11px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.25s}.toast.show{opacity:1}
+
+.page-list{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 340px);overflow-y:auto}
+.page-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:var(--surface2);border:1px solid rgba(255,255,255,.06);font-size:13px;cursor:default;transition:background .15s,border-color .15s;user-select:none}
+.page-item.dragging{opacity:.4;border-color:var(--accent)}
+.page-item.drag-over{border-color:var(--accent);background:rgba(79,124,255,.13)}
+.drag-handle{display:flex;flex-direction:column;gap:3px;padding:2px 4px;cursor:grab;flex-shrink:0;opacity:.45}
+.drag-handle:active{cursor:grabbing}
+.drag-handle span{display:block;width:3px;height:3px;border-radius:50%;background:var(--muted)}
+.drag-dots{display:flex;flex-direction:column;gap:3px;cursor:grab;flex-shrink:0;padding:0 3px}
+.drag-dots:active{cursor:grabbing}
+.dot-col{display:flex;flex-direction:column;gap:3px}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--muted2)}
+.page-thumb{width:36px;height:46px;background:#fff;border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
+.page-thumb canvas{width:100%;height:100%;display:block}
+.page-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.page-del{background:none;border:none;color:var(--muted2);cursor:pointer;padding:4px 6px;border-radius:6px;font-size:16px;line-height:1;transition:.15s}
+.page-del:hover{color:#fecaca;background:rgba(239,68,68,.15)}
+.arrow-btns{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.arrow-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:5px;width:22px;height:18px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;transition:.15s}
+.arrow-btn:hover{color:var(--text);border-color:var(--accent)}
+
+@media(max-width:850px){.grid{grid-template-columns:1fr}.pages{max-height:none}}
+</style></head>
+<body>
+<header>
+  <a href="https://exchange106documentcentre.powerappsportals.com/" class="home-btn"><img src="company-building-logo.png" alt="Exchange 106" style="width:100%;height:100%;object-fit:contain;display:block;"></a>
+  <div class="logo">PDF<span>Organise</span></div>
+  <button class="btn" onclick="chooseFile()">Open PDF</button>
+  <button class="btn primary" onclick="previewOrganised()">Preview</button>
+  <button class="btn green" id="saveBtn" onclick="saveOrganised()" disabled>Save PDF</button>
+  <button class="btn danger" onclick="clearAll()">Clear</button>
+</header>
+<main><div class="grid">
+  <section class="card">
+    <div id="drop" class="drop" onclick="chooseFile()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <h2>Drop a PDF here</h2>
+      <p>Open a PDF to reorder, remove, or rearrange its pages.</p>
+    </div>
+    <input id="fileInput" type="file" accept=".pdf,application/pdf" hidden onchange="loadFile(this.files[0]);this.value=''"/>
+    <ul id="pageList" class="page-list"></ul>
+    <div class="actions">
+      <button class="btn" onclick="chooseFile()">Open PDF</button>
+      <button class="btn primary" onclick="previewOrganised()">Preview</button>
+      <button class="btn green" id="saveBtn2" onclick="saveOrganised()" disabled>Save PDF</button>
+    </div>
+    <p class="note">Tip: drag pages by the ⋮⋮ handle or use ↑ / ↓ arrows. Click × to remove a page.</p>
+  </section>
+  <section class="card viewer">
+    <div class="viewer-head"><b>Preview</b><span id="status">No PDF loaded yet</span></div>
+    <div id="pages" class="pages"><p class="note">Organised pages will appear here.</p></div>
+  </section>
+</div></main>
+<div id="toast" class="toast"></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pages=[];
+let pdfDoc=null;
+let savedBytes=null;
+let dragSrcIdx=null;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function chooseFile(){document.getElementById('fileInput').click()}
+function dragOver(e){e.preventDefault();document.getElementById('drop').classList.add('drag')}
+function dragLeave(){document.getElementById('drop').classList.remove('drag')}
+function dropFile(e){e.preventDefault();dragLeave();const f=e.dataTransfer.files[0];if(f)loadFile(f)}
+function setSave(v){document.getElementById('saveBtn').disabled=!v;document.getElementById('saveBtn2').disabled=!v}
+
+async function loadFile(f){
+  if(!f||!(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){toast('Please open a PDF file');return}
+  toast('Loading...');
+  const buf=await f.arrayBuffer();
+  const bytes=new Uint8Array(buf);
+  pdfDoc=await pdfjsLib.getDocument({data:bytes.slice().buffer}).promise;
+  pages=[];
+  for(let i=1;i<=pdfDoc.numPages;i++){
+    const thumb=await renderThumb(i);
+    pages.push({origIdx:i,label:'Page '+i,thumb});
+  }
+  savedBytes=null;
+  setSave(false);
+  document.getElementById('status').textContent='No preview yet';
+  document.getElementById('pages').innerHTML='<p class="note">Organised pages will appear here.</p>';
+  renderList();
+  toast(pdfDoc.numPages+' page(s) loaded');
+}
+
+async function renderThumb(pageNum){
+  const page=await pdfDoc.getPage(pageNum);
+  const vp=page.getViewport({scale:0.15});
+  const c=document.createElement('canvas');
+  c.width=vp.width;c.height=vp.height;
+  await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+  return c;
+}
+
+function renderList(){
+  const ul=document.getElementById('pageList');
+  ul.innerHTML='';
+  pages.forEach((p,i)=>{
+    const li=document.createElement('li');
+    li.className='page-item';
+    li.draggable=true;
+    li.dataset.idx=i;
+
+    li.addEventListener('dragstart',e=>{dragSrcIdx=i;li.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+    li.addEventListener('dragend',()=>{li.classList.remove('dragging');document.querySelectorAll('.page-item').forEach(el=>el.classList.remove('drag-over'))});
+    li.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.page-item').forEach(el=>el.classList.remove('drag-over'));li.classList.add('drag-over')});
+    li.addEventListener('drop',e=>{e.preventDefault();li.classList.remove('drag-over');if(dragSrcIdx===null||dragSrcIdx===i)return;const moved=pages.splice(dragSrcIdx,1)[0];pages.splice(i,0,moved);dragSrcIdx=null;savedBytes=null;setSave(false);renderList()});
+
+    const handle=document.createElement('div');
+    handle.className='drag-handle';
+    handle.title='Drag to reorder';
+    handle.innerHTML='<div class="drag-dots"><div class="dot-col"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="dot-col"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
+
+    const thumb=document.createElement('div');
+    thumb.className='page-thumb';
+    if(p.thumb){const c2=p.thumb.cloneNode(true);c2.style.width='100%';c2.style.height='100%';thumb.appendChild(c2)}
+
+    const name=document.createElement('span');
+    name.className='page-name';
+    name.textContent=p.label;
+
+    const pill=document.createElement('span');
+    pill.className='pill';
+    pill.textContent=(i+1)+' / '+pages.length;
+
+    const arrows=document.createElement('div');
+    arrows.className='arrow-btns';
+    const up=document.createElement('button');
+    up.className='arrow-btn';up.textContent='↑';up.title='Move up';
+    up.onclick=()=>move(i,-1);
+    const dn=document.createElement('button');
+    dn.className='arrow-btn';dn.textContent='↓';dn.title='Move down';
+    dn.onclick=()=>move(i,1);
+    arrows.appendChild(up);arrows.appendChild(dn);
+
+    const del=document.createElement('button');
+    del.className='page-del';del.textContent='×';del.title='Remove page';
+    del.onclick=()=>removePage(i);
+
+    li.appendChild(handle);li.appendChild(thumb);li.appendChild(name);li.appendChild(pill);li.appendChild(arrows);li.appendChild(del);
+    ul.appendChild(li);
+  });
+}
+
+function move(i,d){
+  const j=i+d;
+  if(j<0||j>=pages.length)return;
+  [pages[i],pages[j]]=[pages[j],pages[i]];
+  savedBytes=null;setSave(false);renderList();
+}
+
+function removePage(i){
+  if(pages.length<=1){toast('Cannot remove the only page');return}
+  pages.splice(i,1);
+  savedBytes=null;setSave(false);renderList();
+}
+
+function clearAll(){
+  pages=[];pdfDoc=null;savedBytes=null;
+  renderList();setSave(false);
+  document.getElementById('pages').innerHTML='<p class="note">Organised pages will appear here.</p>';
+  document.getElementById('status').textContent='No PDF loaded yet';
+}
+
+async function previewOrganised(){
+  if(!pdfDoc||pages.length===0){toast('Open a PDF first');return}
+  toast('Building preview...');
+  try{
+    const {PDFDocument}=PDFLib;
+    const srcBytes=await pdfDoc.getData();
+    const srcDoc=await PDFDocument.load(srcBytes,{ignoreEncryption:true});
+    const outDoc=await PDFDocument.create();
+    for(const p of pages){
+      const [copied]=await outDoc.copyPages(srcDoc,[p.origIdx-1]);
+      outDoc.addPage(copied);
+    }
+    savedBytes=await outDoc.save();
+    setSave(true);
+    await renderPreview(savedBytes);
+    toast('Preview ready');
+  }catch(e){console.error(e);alert('Error: '+(e.stack||e.message))}
+}
+
+async function renderPreview(bytes){
+  const pdf=await pdfjsLib.getDocument({data:new Uint8Array(bytes).slice().buffer}).promise;
+  const holder=document.getElementById('pages');
+  holder.innerHTML='';
+  document.getElementById('status').textContent=pdf.numPages+' page(s)';
+  for(let n=1;n<=pdf.numPages;n++){
+    const page=await pdf.getPage(n);
+    const vp=page.getViewport({scale:1.15});
+    const wrap=document.createElement('div');wrap.className='page-wrap';
+    const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;
+    wrap.appendChild(c);
+    const lab=document.createElement('div');lab.className='page-num';lab.textContent=n;
+    wrap.appendChild(lab);
+    holder.appendChild(wrap);
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+  }
+}
+
+function saveOrganised(){
+  if(!savedBytes){toast('Preview first');return}
+  const blob=new Blob([savedBytes],{type:'application/pdf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='organised.pdf';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+</script>
+</body></html>
