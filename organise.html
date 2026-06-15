@@ -59,6 +59,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/p
 
 let pages=[];
 let pdfDoc=null;
+let pdfBytes=null;
 let savedBytes=null;
 let dragSrcIdx=null;
 
@@ -73,8 +74,8 @@ async function loadFile(f){
   if(!f||!(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'))){toast('Please open a PDF file');return}
   toast('Loading...');
   const buf=await f.arrayBuffer();
-  const bytes=new Uint8Array(buf);
-  pdfDoc=await pdfjsLib.getDocument({data:bytes.slice().buffer}).promise;
+  pdfBytes=new Uint8Array(buf);
+  pdfDoc=await pdfjsLib.getDocument({data:pdfBytes.slice().buffer}).promise;
   pages=[];
   for(let i=1;i<=pdfDoc.numPages;i++){
     const thumb=await renderThumb(i);
@@ -90,7 +91,7 @@ async function loadFile(f){
 
 async function renderThumb(pageNum){
   const page=await pdfDoc.getPage(pageNum);
-  const vp=page.getViewport({scale:0.15});
+  const vp=page.getViewport({scale:0.4});
   const c=document.createElement('canvas');
   c.width=vp.width;c.height=vp.height;
   await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
@@ -161,7 +162,7 @@ function removePage(i){
 }
 
 function clearAll(){
-  pages=[];pdfDoc=null;savedBytes=null;
+  pages=[];pdfDoc=null;pdfBytes=null;savedBytes=null;
   renderList();setSave(false);
   document.getElementById('pages').innerHTML='<p class="note">Organised pages will appear here.</p>';
   document.getElementById('status').textContent='No PDF loaded yet';
@@ -172,8 +173,7 @@ async function previewOrganised(){
   toast('Building preview...');
   try{
     const {PDFDocument}=PDFLib;
-    const srcBytes=await pdfDoc.getData();
-    const srcDoc=await PDFDocument.load(srcBytes,{ignoreEncryption:true});
+    const srcDoc=await PDFDocument.load(pdfBytes,{ignoreEncryption:true});
     const outDoc=await PDFDocument.create();
     for(const p of pages){
       const [copied]=await outDoc.copyPages(srcDoc,[p.origIdx-1]);
